@@ -1,7 +1,7 @@
 CC = gcc
-CFLAGS = -g3 -Wall -Wextra -Werror -pedantic -Iinclude
+CFLAGS = -g3 -Wall -Wextra -Werror -pedantic -Iinclude 
 
-SRC = src/main.c src/basket.c src/avl.c src/player.c
+SRC = src/main.c src/basket.c src/hashtable.c src/player.c src/vector.c
 OBJS = $(SRC:.c=.o)
 PROGRAM = basket
 
