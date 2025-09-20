@@ -2,25 +2,29 @@
 #define BASKET_H
 
 #include <stdbool.h>
-#include "avl.h"
+#include "vector.h"
+#include "hashtable.h"
 
 //Function to use getline
-char *get_func(void);
+char *get_line(void);
 
-//Function to print stats of all players
-void print_team(avl *avl,char *filename);
+//Function to print stats of all players of the team
+void print_all_players(vector *vec,char *filename);
 
 //Function to print stats of a specific player
-void print_stats(avl *avl);
+void print_one_player(hashtable *ht);
 
 //Function to add stats of a player
-void add_stats(avl *avl);
+void add_stats(hashtable *ht);
 
 //Function to remove a player from the list of the team
-bool rem(avl **avl);
+bool remove_player(hashtable **ht,vector **vec);
 
 //Function to read a new player and add him to the list of the team
-bool read_player(avl **avl);
+bool read_player(hashtable **ht,vector **vect);
+
+//Function to print the top 3 players according to user's choice
+void print_top_players(vector *vec,int stat);
 
 //For printing purposes
 void line(void);
@@ -29,6 +33,6 @@ void line(void);
 void clear_stdin(void);
 
 //Function to get the file with the players 
-avl *load_file(avl *avl);
+bool load_file(hashtable **ht,vector **vec);
 
 #endif
