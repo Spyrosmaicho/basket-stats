@@ -2,6 +2,6 @@
 
 make
 
-valgrind   ./basket
+valgrind ./basket
 
 make clean
