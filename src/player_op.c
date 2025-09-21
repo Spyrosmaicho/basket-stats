@@ -5,6 +5,8 @@
 #include "io.h"
 #include "player_op.h"
 
+
+
 const char *messages[] = 
 {
     "How many made 1 pointers you want to add: ",
@@ -22,6 +24,23 @@ const char *messages[] =
     "How many turnovers you want to add: ",
     "How many matches you want to add: "
 };
+
+typedef enum {
+    FT_MADE = 1,
+    FT_ATTEMPTED,
+    TWO_MADE,
+    TWO_ATTEMPTED,
+    THREE_MADE,
+    THREE_ATTEMPTED,
+    REBOUNDS,
+    OFF_REBOUNDS,
+    DEF_REBOUNDS,
+    ASSISTS,
+    STEALS,
+    BLOCKS,
+    TURNOVERS,
+    MATCHES
+} StatType;
 
 void (*add_vals[])(player *,int) = 
 {
@@ -188,7 +207,7 @@ void add(hashtable *ht,team *t,int stat)
     }
 
     //Check for made , attempted functions
-    if(stat-1 <= 5)
+    if(stat <= THREE_ATTEMPTED)
     {
         int made =  0,attempts = 0;
         if(stat % 2 == 1) //Made shots
@@ -211,13 +230,13 @@ void add(hashtable *ht,team *t,int stat)
     }
 
     //Handle rebounds
-    if(stat>=8 && stat<=9)
+    if(stat>=OFF_REBOUNDS && stat<=DEF_REBOUNDS)
     {        
         int total = get_rebounds(player_found);
         int off=0,def=0;
         //Offensive rebs
-        if(stat==8) off = get_off_rebounds(player_found) + value;
-        else if(stat==9)  def = get_def_rebounds(player_found) + value;
+        if(stat==OFF_REBOUNDS) off = get_off_rebounds(player_found) + value;
+        else def = get_def_rebounds(player_found) + value;
 
         if(off > total || def > total) 
         {
@@ -227,13 +246,13 @@ void add(hashtable *ht,team *t,int stat)
         }
 
         //If user added off rebs we can found def rebs, because we also know the total rebs 
-        if(stat==8) add_vals[stat](player_found,total - off);
+        if(stat==OFF_REBOUNDS) add_vals[stat](player_found,total - off);
         else add_vals[stat-2](player_found,total-def);
     }
 
 
     add_vals[stat-1](player_found,value);
-    if(stat-1<=5) //If the stat is for made-attempted shots, calculate the percentage
+    if(stat<=THREE_ATTEMPTED) //If the stat is for made-attempted shots, calculate the percentage
     {
         if(stat%2==0) add_percent[stat/2-1](player_found);
         else add_percent[stat/2](player_found);
