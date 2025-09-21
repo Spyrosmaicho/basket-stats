@@ -144,6 +144,7 @@ void *insert_hash(struct hashtable *ht,const char *key,void *val)
 //Function to search for a value by key in the hashtable
 void *search_hash(const hashtable *ht,const char *key)
 {
+    if(!ht) return NULL;
     unsigned long index = hash(key) & (ht->size-1);
     hashnode *node = ht->bucket[index];
 
