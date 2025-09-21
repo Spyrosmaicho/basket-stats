@@ -16,8 +16,7 @@ void new_data(hashtable *ht,vector *vec)
         printf("Type your choice: ");
         if(scanf("%lu",&choice)!=1 || choice<1 || choice >7) 
         {
-            fprintf(stderr,"Error occured.\n");
-            sleep(1);
+            error_message("Error occured.\n");
             clear_stdin();
             choice = 0; //make it zero because we dont want switch to choose a case (previous value was saved!)
         }
@@ -35,8 +34,7 @@ void new_data(hashtable *ht,vector *vec)
                 ;
                 if(!vec || !ht)
                 {
-                    fprintf(stderr,"Error occured.\n");
-                    sleep(1.5);
+                    error_message("Error occured.\n");
                     break;
                 }
                 bool check2 = remove_player(&ht,&vec);
@@ -49,8 +47,7 @@ void new_data(hashtable *ht,vector *vec)
                     //If the vector is empty there are no players 
                     if(!vec || empty(vec))
                     {
-                        fprintf(stderr, "Team is empty. No players to display.\n");
-                        sleep(2);
+                        error_message("Team is empty. No players to display.\n");
                         break;
                     }
                     ;
@@ -61,28 +58,26 @@ void new_data(hashtable *ht,vector *vec)
                         go_back = false;
                         show_top_menu();
                         printf("Type your choice: ");
-                        if(scanf("%d",&stat)!=1 || stat<1 || stat>11)
+                        if(scanf("%d",&stat)!=1 || stat<1 || stat>13)
                         {
-                            fprintf(stderr,"Wrong choice.\n");
-                            sleep(1.5);
+                            error_message("Wrong choice.\n");
                             clear_stdin();
                             system("clear");
                             go_back = true; //We dont want to go back to the previous menu if there's a mistake from user
                         }
                         system("clear");
-                        if(stat!=11 && !go_back)  
+                        if(stat!=13 && !go_back)  
                         {
                             print_top_players(vec,stat);
                             system("clear");
                         }
-                    }while(stat!=11 && go_back);
+                    }while(stat!=13 && go_back);
                     break;
                 case 5:
                     ;
                     if(!ht) 
                     {
-                        fprintf(stderr,"Team is empty. No players to display.\n");
-                        sleep(2);
+                       error_message("Team is empty. No players to display.\n");
                         break;
                     }
                     print_one_player(ht);
@@ -90,8 +85,7 @@ void new_data(hashtable *ht,vector *vec)
                 case 6:
                     if (!vec || empty(vec)) 
                     {
-                        printf("Team is empty. No players to display.\n");
-                        sleep(2);
+                       error_message("Team is empty. No players to display.\n");
                         break;
                     }
                     clear_stdin();

@@ -22,11 +22,7 @@ int main(void)
     do
     {
        show_main_menu();
-        if(scanf("%d",&user)!=1 || user<1 || user>3) 
-        {
-            fprintf(stderr,"Wrong choice\n");
-            sleep(1.5);
-        }
+        if(scanf("%d",&user)!=1 || user<1 || user>3) error_message("Wrong choice.\n");
         clear_stdin();
         system("clear");
         switch(user)
@@ -40,7 +36,7 @@ int main(void)
                 is_freed = true;
                 break;
             case 2: //load data from a file
-                file_data(ht,vec,&is_freed);
+                file_data(&ht,&vec,&is_freed);
                 break;
         }
         system("clear");

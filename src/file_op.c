@@ -13,7 +13,11 @@ bool load_file(hashtable **ht,vector **vec)
     if(!filename) return false;
 
     FILE *f = fopen(filename,"r");
-    if(!f) return false;
+    if(!f) 
+    {
+        free(filename);
+        return false;
+    }
 
     //free filename (caller should free the returned string of get_line)
     free(filename);
@@ -26,7 +30,6 @@ bool load_file(hashtable **ht,vector **vec)
     {
         free(buff);
         fclose(f);
-        fprintf(stderr,"Error occured.\n");
         return 0;
     }
 
@@ -37,10 +40,10 @@ bool load_file(hashtable **ht,vector **vec)
 
     //READ THE DATA FROM THE FILE USING FSCANF. THEN INSERT THEM INTO THE hashtable and the vector
     char name[100];
-    int rebs = 0,ass = 0,steals=0,blocks=0,tos=0,matches=0,ft_made = 0,ft_attempted = 0,two_made = 0,two_attempted = 0,three_made = 0,three_attempted = 0;
+    int off = 0,def = 0,ass = 0,steals=0,blocks=0,tos=0,matches=0,ft_made = 0,ft_attempted = 0,two_made = 0,two_attempted = 0,three_made = 0,three_attempted = 0;
     int res = 0;
-    while((res = fscanf(f," %99[^|] | %d / %d | %d / %d | %d / %d | %d | %d | %d | %d | %d | %d",
-        name,&ft_made,&ft_attempted,&two_made,&two_attempted,&three_made,&three_attempted,&rebs,&ass,&steals,&blocks,&tos,& matches)) == 13)
+    while((res = fscanf(f," %99[^|] | %d / %d | %d / %d | %d / %d | %d - %d | %d | %d | %d | %d | %d",
+        name,&ft_made,&ft_attempted,&two_made,&two_attempted,&three_made,&three_attempted,&off,&def,&ass,&steals,&blocks,&tos,& matches)) == 14)
     {
         //This cannot happen. It's not true
         if(two_made > two_attempted || three_made > three_attempted || ft_made>ft_attempted) 
@@ -53,7 +56,7 @@ bool load_file(hashtable **ht,vector **vec)
         while (len > 0 && name[len - 1] == ' ') name[--len] = '\0';
         player *pl = create_player(name);
 
-        int array_of_stats[12] = {ft_made,two_made,three_made,ft_attempted,two_attempted,three_attempted,rebs,ass,steals,blocks,tos,matches};
+        int array_of_stats[13] = {ft_made,two_made,three_made,ft_attempted,two_attempted,three_attempted,off,def,ass,steals,blocks,tos,matches};
         insert_player_stats(pl,array_of_stats);
 
         //Insert the player into the hashtable
@@ -68,8 +71,7 @@ bool load_file(hashtable **ht,vector **vec)
     }
     if(res < 12 && res!=EOF) 
     {
-        fprintf(stderr,"A stat is wrong.\n");
-        sleep(1.5);
+        error_message("A stat is wrong.\n");
         fclose(f);
         return false;
     }

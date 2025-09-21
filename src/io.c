@@ -1,4 +1,3 @@
-#include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
 #include "player.h"
@@ -10,6 +9,8 @@ int (*cmp_funcs[])(const void *, const void *) =
     NULL, // Index 0 is unused for 1-based indexing
     cmp_points,
     cmp_rebs,
+    cmp_off_rebs,
+    cmp_def_rebs,
     cmp_ass,
     cmp_steals,
     cmp_blocks,
@@ -21,11 +22,32 @@ int (*cmp_funcs[])(const void *, const void *) =
 };
 
 //print header
-void print_header(int len)
+void print_header(int len,FILE *file)
 {
-    printf("%-*s | %7s | %8s | %7s | %6s | %6s | %5s | %7s | %7s     | %7s     | %7s     | %6s | %6s | %6s\n",len,
-    "Name", "Points", "Rebounds", "Assists", "Steals", "Blocks", "Tos", "Matches", "1pt"
+    !file ? printf("%-*s | %7s | %17s| %7s | %6s | %6s | %5s | %7s | %7s     | %7s     | %7s     | %6s | %6s | %6s\n",len,
+    "Name", "Points", "Rebounds(off/def)", "Assists", "Steals", "Blocks", "Tos", "Matches", "1pt"
+    ,"2pt", "3pt","1pt %" ,"2pt %", "3pt %") : fprintf(file,"%-*s | %7s | %17s| %7s | %6s | %6s | %5s | %7s | %7s     | %7s     | %7s     | %6s | %6s | %6s\n",len,
+    "Name", "Points", "Rebounds(off/def)", "Assists", "Steals", "Blocks", "Tos", "Matches", "1pt"
     ,"2pt", "3pt","1pt %" ,"2pt %", "3pt %");
+    
+}
+
+
+//Function to print a message for errors
+void error_message(char *mes)
+{
+    fprintf(stderr,"%s",mes);
+    sleep(1.5);
+}
+
+//Function to deallocate the memory if there is an error
+void error_handler(hashtable *ht,vector *vec)
+{
+    //FREE vector and hashtable
+    destroy(vec);
+    free_hashtable(ht);
+    error_message("Error occured.\n");
+    exit(1);
 }
 
 //Function to use getline
@@ -37,7 +59,7 @@ char *get_line(void)
     if((numCh = getline(&buff, &sizeAllocated, stdin)) ==-1 )
     {
         free(buff);
-        fprintf(stderr,"Error occured.\n");
+        error_message("Error occured.\n");
         return NULL;
     }
 
@@ -61,6 +83,12 @@ void line(void)
     printf("----------------\n");
 }
 
+//Helper function to print the percentage
+void print_percentage(const char *label,int made,int attempted,double percentage)
+{
+    printf("%s: %d / %d - %.2lf%%\n",label,made,attempted,attempted!= 0 ? percentage : 0.0);
+}
+
 //Function to print stats of a specific player
 void print_one_player(hashtable *ht)
 {
@@ -73,45 +101,30 @@ void print_one_player(hashtable *ht)
 
     if(!player_found)
     {
-        fprintf(stderr, "Player not found.\n");
-        sleep(1);
+        error_message("Player not found.\n");
         free(name);
         return;
     }
  
-    char *name_pl = get_name(player_found);
-    int points = get_points(player_found);
-    int rebs = get_rebounds(player_found);
-    int ass = get_assists(player_found);
-    int steals = get_steals(player_found);
-    int blocks = get_blocks(player_found);
-    int tos = get_tos(player_found);
-    int matches = get_matches(player_found);
-    int ft_made = get_ft_made(player_found);
-    int ft_attempted = get_ft_attempted(player_found);
-    int two_made = get_two_made(player_found);
-    int two_attempted = get_two_attempted(player_found);
-    int three_made = get_three_made(player_found);
-    int three_attempted = get_three_attempted(player_found);
-    double one_percent = 0.0;
-    if(ft_attempted!=0) one_percent = get_1p_percentage(player_found);
-    double two_percent = 0.0;
-    if(two_attempted!=0)two_percent = get_2p_percentage(player_found);
-    double three_percent = 0.0;
-    if(three_attempted!=0) three_percent = get_3p_percentage(player_found);
     system("clear");
-    printf("Player: %s\n",name_pl);
+    printf("Player: %s\n",get_name(player_found));
     line();
-    printf("Points: %d\n",points);
-    printf("Rebounds: %d\n",rebs);
-    printf("Assists: %d\n",ass);
-    printf("Steals: %d\n",steals);
-    printf("Blocks: %d\n",blocks);
-    printf("Turnovers: %d\n",tos);
-    printf("Matches: %d\n",matches);
-    printf("Free Throws - Percentage: %d / %d - %.2lf%%\n",ft_made,ft_attempted,one_percent);
-    printf("Two Pointers - Percentage: %d / %d - %.2lf%%\n",two_made,two_attempted,two_percent);
-    printf("Three Pointers - Percentage: %d / %d - %.2lf%%\n",three_made,three_attempted,three_percent);
+    printf("Points: %d\n",get_points(player_found));
+    printf("Rebounds(off/def): %d (%d - %d)\n",get_rebounds(player_found),get_off_rebounds(player_found),get_def_rebounds(player_found));
+    printf("Assists: %d\n",get_assists(player_found));
+    printf("Steals: %d\n",get_steals(player_found));
+    printf("Blocks: %d\n",get_blocks(player_found));
+    printf("Turnovers: %d\n",get_tos(player_found));
+    printf("Matches: %d\n",get_matches(player_found));
+    //Free throws percentage
+    print_percentage("Free Throws - Percentage",get_ft_made(player_found),get_ft_attempted(player_found),get_1p_percentage(player_found));
+    
+    //Two points percentage
+    print_percentage("Two Pointers - Percentage",get_two_made(player_found),get_two_attempted(player_found),get_2p_percentage(player_found));
+
+    //Three points percentage
+    print_percentage("Three Pointers - Percentage",get_three_made(player_found),get_three_attempted(player_found),get_3p_percentage(player_found));
+
     sleep(4);
     free(name);
 }
@@ -122,19 +135,14 @@ void print_all_players(vector *vec,char *filename)
     FILE *file = fopen(filename, "w");
     if (!file ) 
     {
-        fprintf(stderr,"Cannot open file\n");
+        error_message("Cannot open file\n");
         return;
     }
 
     int len = vector_biggest_data(vec,player_name_len);
 
-    printf("%-*s | %7s | %8s | %7s | %6s | %6s | %5s | %7s | %7s     | %7s     | %7s     | %6s | %6s | %6s\n",len,
-    "Name", "Points", "Rebounds", "Assists", "Steals", "Blocks", "Tos", "Matches", "1pt"
-    ,"2pt", "3pt","1pt %" ,"2pt %", "3pt %");
-    
-        fprintf(file,"%-*s | %7s | %8s | %7s | %6s | %6s | %5s | %7s | %7s     | %7s     | %7s     | %6s | %6s | %6s\n",len,
-    "Name", "Points", "Rebounds", "Assists", "Steals", "Blocks", "Tos", "Matches", "1pt"
-    ,"2pt", "3pt","1pt %" ,"2pt %", "3pt %");
+    print_header(len,NULL);
+    print_header(len,file);
 
     int numsSize = vec_index(vec);
     for(int i = 0;i<numsSize;i++)
@@ -143,7 +151,6 @@ void print_all_players(vector *vec,char *filename)
         print_player(pl,file,len);
     }
     
-
     sleep(4);
     fclose(file);
 }
@@ -156,7 +163,7 @@ void print_top_players(vector *vec, int stat)
     // Sort the vector using the function pointer array
     vector_sort(vec, cmp_funcs[stat]);
 
-    print_header(len);
+    print_header(len,NULL);
 
     // Print first 3 players
     int num_players = (vec_index(vec) >= 3) ? 3 : vec_index(vec);

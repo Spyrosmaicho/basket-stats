@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "player.h"
+#include "menu.h"
 #include "io.h"
 #include "player_op.h"
 
@@ -13,7 +14,9 @@ const char *messages[] =
     "How many attempted 2 pointers you want to add: ",
     "How many made 3 pointers you want to add: ",
     "How many attempted 3 pointers you want to add: ",
-    "How many rebounds you want to add: ",
+    "How many total rebounds you want to add: ",
+    "How many offensive rebounds you want to add: ",
+    "How many defensive rebounds you want to add: ",
     "How many assists you want to add: ",
     "How many steals you want to add: ",
     "How many blocks you want to add: ",
@@ -30,6 +33,8 @@ void (*add_vals[])(player *,int) =
     add_3p_made,
     add_3p_attempted,
     add_rebs,
+    add_off_rebs,
+    add_def_rebs,
     add_ass,
     add_steals,
     add_blocks,
@@ -101,8 +106,7 @@ bool remove_player(hashtable **ht,vector **vec)
     player *to_freed = delete_hash(*ht,name);
     if(!to_freed)
     {
-        fprintf(stderr,"Player not found.\n");
-        sleep(1);
+        error_message("Player not found.\n");
         free(name);
         return true;
     }
@@ -129,8 +133,7 @@ void add(hashtable *ht,int stat)
 
     if(!player_found)
     {
-        fprintf(stderr, "Player not found.\n");
-        sleep(1);
+        error_message("Player not found.\n");
         free(name);
         return;
     } 
@@ -139,8 +142,7 @@ void add(hashtable *ht,int stat)
     printf("%s",messages[stat-1]);
     if(scanf("%d",&value)!=1)
     {
-        fprintf(stderr,"Wrong value\n");
-        sleep(1);
+        error_message("Wrong value.\n");
         clear_stdin();
     }
 
@@ -161,16 +163,36 @@ void add(hashtable *ht,int stat)
 
         if(made > attempts) 
         {
-            fprintf(stderr,"Made cannot be more than total attempts!!!\n");
-            sleep(2);
+            error_message("Made cannot be more than total attempts!!!\n");
             free(name);
             return;
         }
     }
 
+    //Handle rebounds
+    if(stat>=8 && stat<=9)
+    {        
+        int total = get_rebounds(player_found);
+        int off=0,def=0;
+        //Offensive rebs
+        if(stat==8) off = get_off_rebounds(player_found) + value;
+        else if(stat==9)  def = get_def_rebounds(player_found) + value;
+
+        if(off > total || def > total) 
+        {
+            error_message("Offensive/Defensive Rebounds cannot be more than total Rebounds!!!\n");
+            free(name);
+            return;
+        }
+
+        //If user added off rebs we can found def rebs, because we also know the total rebs 
+        if(stat==8) add_vals[stat](player_found,total - off);
+        else add_vals[stat-2](player_found,total-def);
+    }
+
 
     add_vals[stat-1](player_found,value);
-    if(stat-1<=5) 
+    if(stat-1<=5) //If the stat is for made-attempted shots, calculate the percentage
     {
         if(stat%2==0) add_percent[stat/2-1](player_found);
         else add_percent[stat/2](player_found);
@@ -184,19 +206,20 @@ void add_stats(hashtable *ht)
     int choice = 0;
     do
     {
+         bool is_valid = true;
         system("clear");
-        printf("Which stat you want to change: \n");
-        printf("1.1p Made\n2.1p Attempted\n3.2p Made\n4.2p Attempted\n5.3p Made\n6.3p Attempted\n7.Rebounds\n8.Assists\n9.Steals\n10.Blocks\n11.Turnovers\n12.Matches\n13.Exit\n");
+        add_stats_menu();
+       
         printf("Type your choice: ");
-        if(scanf("%d",&choice)!=1 || choice <1 || choice >13) 
+        if(scanf("%d",&choice)!=1 || choice <1 || choice >15) 
         {
-            fprintf(stderr,"Wrong value\n");
-            sleep(1);
+            error_message("Wrong value.\n");
             clear_stdin();
+            is_valid = false;
             choice = 0;   
         }
         system("clear");
-        add(ht,choice);
-    }while(choice!=13);
+        if(choice!=15 && is_valid) add(ht,choice);
+    }while(choice!=15);
 
 }

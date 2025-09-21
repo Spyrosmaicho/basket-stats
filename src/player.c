@@ -6,6 +6,8 @@ struct player{
     char *name; 
     int points;
     int rebs;
+    int off_rebs;
+    int def_rebs;
     int ass;
     int steals;
     int blocks;
@@ -35,6 +37,19 @@ int cmp_rebs(const void *a,const void *b)
     player *pb = *(player**)b;
     
     return pb->rebs - pa->rebs;
+}
+int cmp_off_rebs(const void *a,const void *b)
+{
+    player *pa = *(player **)a;
+    player *pb = *(player**)b;
+    
+    return pb->off_rebs - pa->off_rebs;
+}
+int cmp_def_rebs(const void *a,const void *b)
+{
+    player *pa = *(player**)a;
+    player *pb = *(player **)b;
+    return pb->def_rebs - pa->def_rebs;
 }
 int cmp_ass(const void *a,const void *b)
 {
@@ -125,6 +140,8 @@ void delete_player(void *item)
 char *get_name(player *person){return person->name;}
 int get_points(player *person){return person->points;}
 int get_rebounds(player *person){return person->rebs;}
+int get_off_rebounds(player *person){return person->off_rebs;}
+int get_def_rebounds(player *person){return person->def_rebs;}
 int get_assists(player *person){return person->ass;}
 int get_steals(player *person){return person->steals;}
 int get_blocks(player *person){return person->blocks;}
@@ -143,6 +160,8 @@ double get_1p_percentage(player *person){return person->ft_made *100.0 / person-
     /*FUNCTIONS FOR ADD*/
 void add_points(player *new,int points){new->points +=points;}
 void add_rebs(player *new,int rebs){new->rebs +=rebs;}
+void add_off_rebs(player *new,int off_rebs){new->off_rebs += off_rebs;}
+void add_def_rebs(player *new,int def_rebs){new->def_rebs +=def_rebs;}
 void add_ass(player *new,int ass){new->ass +=ass;}
 void add_steals(player *new,int steals){new->steals +=steals;}
 void add_blocks(player *new,int blocks){new->blocks +=blocks;}
@@ -164,6 +183,8 @@ void print_player(player *pl,FILE *file,int len)
     char *name = get_name(pl);
     int points = get_points(pl);
     int rebs = get_rebounds(pl);
+    int off = get_off_rebounds(pl);
+    int def = get_def_rebounds(pl);
     int ass = get_assists(pl);
     int steals = get_steals(pl);
     int blocks = get_blocks(pl);
@@ -181,10 +202,10 @@ void print_player(player *pl,FILE *file,int len)
     if(two_attempted !=0) two_percent = get_2p_percentage(pl);
     double three_percent = 0.0;
     if(three_attempted!= 0) three_percent = get_3p_percentage(pl);
-   printf("%-*s | %7d | %8d | %7d | %6d | %6d | %5d | %7d | %4d / %-4d | %4d / %-4d | %4d / %-4d | %6.2f | %6.2f | %6.2f\n",len,
-    name,points,rebs,ass,steals,blocks,tos,matches,ft_made,ft_attempted,two_made,two_attempted,three_made,three_attempted,one_percent,two_percent,three_percent);
-   if(file) fprintf(file,"%-*s | %7d | %8d | %7d | %6d | %6d | %5d | %7d | %4d / %-4d | %4d / %-4d | %4d / %-4d | %6.2f | %6.2f | %6.2f\n",len,
-    name,points,rebs,ass,steals,blocks,tos,matches,ft_made,ft_attempted,two_made,two_attempted,three_made,three_attempted,one_percent,two_percent,three_percent);
+   printf("%-*s | %7d | %8d (%d - %d) | %7d | %6d | %6d | %5d | %7d | %4d / %-4d | %4d / %-4d | %4d / %-4d | %6.2f | %6.2f | %6.2f\n",len,
+    name,points,rebs,off,def,ass,steals,blocks,tos,matches,ft_made,ft_attempted,two_made,two_attempted,three_made,three_attempted,one_percent,two_percent,three_percent);
+   if(file) fprintf(file,"%-*s | %7d | %8d (%d - %d) | %7d | %6d | %6d | %5d | %7d | %4d / %-4d | %4d / %-4d | %4d / %-4d | %6.2f | %6.2f | %6.2f\n",len,
+    name,points,rebs,off,def,ass,steals,blocks,tos,matches,ft_made,ft_attempted,two_made,two_attempted,three_made,three_attempted,one_percent,two_percent,three_percent);
 }
 
 player *insert_player_stats(player *pl,int *array_of_stats)
@@ -195,12 +216,14 @@ player *insert_player_stats(player *pl,int *array_of_stats)
     add_1p_attempted(pl,array_of_stats[3]);
     add_2p_attempted(pl,array_of_stats[4]);
     add_3p_attempted(pl,array_of_stats[5]);
-    add_rebs(pl,array_of_stats[6]);
-    add_ass(pl,array_of_stats[7]);
-    add_steals(pl,array_of_stats[8]);
-    add_blocks(pl,array_of_stats[9]);
-    add_tos(pl,array_of_stats[10]);
-    add_matches(pl,array_of_stats[11]);
+    add_off_rebs(pl,array_of_stats[6]);
+    add_def_rebs(pl,array_of_stats[7]);
+    add_rebs(pl,array_of_stats[6] + array_of_stats[7]);
+    add_ass(pl,array_of_stats[8]);
+    add_steals(pl,array_of_stats[9]);
+    add_blocks(pl,array_of_stats[10]);
+    add_tos(pl,array_of_stats[11]);
+    add_matches(pl,array_of_stats[12]);
     
     add_2p_percent(pl);
     add_3p_percent(pl);
