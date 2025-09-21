@@ -8,6 +8,6 @@
 void show_main_menu(void);
 void show_new_data_menu(void);
 void show_top_menu(void);
-void error_handler(hashtable *ht,vector *vec);
+void add_stats_menu(void);
 
 #endif

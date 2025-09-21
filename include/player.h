@@ -7,6 +7,8 @@ typedef struct player player;
 //Compare functions 
 int cmp_points(const void *a,const void *b);
 int cmp_rebs(const void *a,const void *b);
+int cmp_off_rebs(const void *a,const void *b);
+int cmp_def_rebs(const void *a,const void *b);
 int cmp_ass(const void *a,const void *b);
 int cmp_steals(const void *a,const void *b);
 int cmp_blocks(const void *a,const void *b);
@@ -38,6 +40,8 @@ int player_name_len(void *data);
 char *get_name(player *person);
 int get_points(player *person);
 int get_rebounds(player *person);
+int get_off_rebounds(player *person);
+int get_def_rebounds(player *person);
 int get_assists(player *person);
 int get_steals(player *person);
 int get_blocks(player *person);
@@ -56,6 +60,8 @@ double get_1p_percentage(player *person);
 /*ADD FUNCTIONS*/
 void add_points(player *new,int points);
 void add_rebs(player *new,int rebs);
+void add_off_rebs(player *new,int off_rebs);
+void add_def_rebs(player *new,int def_rebs);
 void add_ass(player *new,int ass);
 void add_steals(player *new,int steals);
 void add_blocks(player *new,int blocks);

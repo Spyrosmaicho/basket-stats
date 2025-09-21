@@ -1,17 +1,22 @@
 #ifndef IO_H
 #define IO_H
 
+#include <stdio.h>
 #include "hashtable.h"
 #include "vector.h"
 
 //print header
-void print_header(int len);
+void print_header(int len,FILE *file);
 
 //Function to use getline
 char *get_line(void);
 
 //Helper function to clear stdin in order to make getline work properly
 void clear_stdin(void) ;
+
+//Functions to handle errors and print error messages 
+void error_handler(hashtable *ht,vector *vec);
+void error_message(char *mes);
 
 //For printing purposes
 void line(void);
