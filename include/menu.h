@@ -4,6 +4,7 @@
 #include "hashtable.h"
 #include "vector.h"
 
+//Basic functions to print the menus
 void show_main_menu(void);
 void show_new_data_menu(void);
 void show_top_menu(void);

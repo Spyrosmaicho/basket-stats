@@ -4,6 +4,7 @@
 #include "hashtable.h"
 #include "vector.h"
 
+//Function to add new data
 void new_data(hashtable *ht,vector *vec);
 
 #endif

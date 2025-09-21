@@ -34,6 +34,7 @@ void print_player(player *pl,FILE *file,int len);
 //Function to return the length of the name of a player
 int player_name_len(void *data);
 
+/*GET FUNCTIONS*/
 char *get_name(player *person);
 int get_points(player *person);
 int get_rebounds(player *person);
@@ -52,6 +53,7 @@ double get_2p_percentage(player *person);
 double get_3p_percentage(player *person);
 double get_1p_percentage(player *person);
 
+/*ADD FUNCTIONS*/
 void add_points(player *new,int points);
 void add_rebs(player *new,int rebs);
 void add_ass(player *new,int ass);
