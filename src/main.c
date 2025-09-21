@@ -31,7 +31,7 @@ int main(void)
         system("clear");
         switch(user)
         {
-            case 1:
+            case 1: //add new data
                 new_data(ht,vec);
                 destroy(vec);
                 free_hashtable(ht);
@@ -39,7 +39,7 @@ int main(void)
                 ht = NULL;
                 is_freed = true;
                 break;
-            case 2:
+            case 2: //load data from a file
                 file_data(ht,vec,&is_freed);
                 break;
         }
