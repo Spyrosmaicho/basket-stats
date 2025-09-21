@@ -7,14 +7,14 @@
 #include "new_data.h"
 
 //New data menu
-void new_data(hashtable *ht,vector *vec)
+void new_data(hashtable *ht,vector *vec,team *t)
 {
     size_t choice = 0;
     do
     {
         show_new_data_menu();
         printf("Type your choice: ");
-        if(scanf("%lu",&choice)!=1 || choice<1 || choice >7) 
+        if(scanf("%lu",&choice)!=1 || choice<1 || choice >8) 
         {
             error_message("Error occured.\n");
             clear_stdin();
@@ -28,7 +28,7 @@ void new_data(hashtable *ht,vector *vec)
             case 1:
                 ;    
                 bool check = read_player(&ht,&vec);
-                if(!check) error_handler(ht,vec);
+                if(!check) error_handler(ht,vec,t);
                 break;
             case 2:
                 ;
@@ -37,11 +37,11 @@ void new_data(hashtable *ht,vector *vec)
                     error_message("Error occured.\n");
                     break;
                 }
-                bool check2 = remove_player(&ht,&vec);
-                if(!check2) error_handler(ht,vec);
+                bool check2 = remove_player(&ht,&vec,t);
+                if(!check2) error_handler(ht,vec,t);
                 break;
                 case 3: 
-                    add_stats(ht);
+                    add_stats(ht,t);
                     break;
                 case 4:
                     //If the vector is empty there are no players 
@@ -90,14 +90,28 @@ void new_data(hashtable *ht,vector *vec)
                     }
                     clear_stdin();
                     printf("Type the name of the file: ");
-                    char *filename = get_line();
-                    if(!filename) error_handler(ht,vec);
+                    char *filename1 = get_line();
+                    if(!filename1) error_handler(ht,vec,t);
                     putchar('\n'); //for good visualization
-                    print_all_players(vec,filename);
+                    print_all_players(vec,filename1);
+                    free(filename1);
+                    break;
+                case 7:
+                    if (!vec || empty(vec)) 
+                    {
+                       error_message("Team is empty. No players to display.\n");
+                        break;
+                    }
+                    clear_stdin();
+                    printf("Type the name of the file: ");
+                    char *filename = get_line();
+                    if(!filename) error_handler(ht,vec,t);
+                    putchar('\n'); //for good visualization
+                    print_team_stats(vec,t,filename);
                     free(filename);
                     break;
             }
 
             system("clear");
-    }while(choice!=7);
+    }while(choice!=8);
 }

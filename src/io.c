@@ -22,7 +22,7 @@ int (*cmp_funcs[])(const void *, const void *) =
 };
 
 //print header
-void print_header(int len,FILE *file)
+void print_player_header(int len,FILE *file)
 {
     !file ? printf("%-*s | %7s | %17s| %7s | %6s | %6s | %5s | %7s | %7s     | %7s     | %7s     | %6s | %6s | %6s\n",len,
     "Name", "Points", "Rebounds(off/def)", "Assists", "Steals", "Blocks", "Tos", "Matches", "1pt"
@@ -30,6 +30,15 @@ void print_header(int len,FILE *file)
     "Name", "Points", "Rebounds(off/def)", "Assists", "Steals", "Blocks", "Tos", "Matches", "1pt"
     ,"2pt", "3pt","1pt %" ,"2pt %", "3pt %");
     
+}
+
+//print team header
+void print_team_header(FILE *file)
+{
+    !file ? printf("%-7s | %17s  | %7s | %6s | %6s | %5s | %7s | %7s     | %7s     | %7s     | %6s | %6s | %6s\n",
+    "Points", "Rebounds(off/def)", "Assists", "Steals", "Blocks", "Tos", "Matches", "1pt","2pt", "3pt","1pt %" ,"2pt %", "3pt %")
+     : fprintf(file,"%-7s | %17s  | %7s | %6s | %6s | %5s | %7s | %7s     | %7s     | %7s     | %6s | %6s | %6s\n",
+    "Points", "Rebounds(off/def)", "Assists", "Steals", "Blocks", "Tos", "Matches", "1pt","2pt", "3pt","1pt %" ,"2pt %", "3pt %");
 }
 
 
@@ -41,11 +50,12 @@ void error_message(char *mes)
 }
 
 //Function to deallocate the memory if there is an error
-void error_handler(hashtable *ht,vector *vec)
+void error_handler(hashtable *ht,vector *vec,team *t)
 {
     //FREE vector and hashtable
     destroy(vec);
     free_hashtable(ht);
+    destroy_team(t);
     error_message("Error occured.\n");
     exit(1);
 }
@@ -141,8 +151,8 @@ void print_all_players(vector *vec,char *filename)
 
     int len = vector_biggest_data(vec,player_name_len);
 
-    print_header(len,NULL);
-    print_header(len,file);
+    print_player_header(len,NULL);
+    print_player_header(len,file);
 
     int numsSize = vec_index(vec);
     for(int i = 0;i<numsSize;i++)
@@ -150,7 +160,6 @@ void print_all_players(vector *vec,char *filename)
         player *pl = vec_data(vec,i);
         print_player(pl,file,len);
     }
-    
     sleep(4);
     fclose(file);
 }
@@ -163,12 +172,33 @@ void print_top_players(vector *vec, int stat)
     // Sort the vector using the function pointer array
     vector_sort(vec, cmp_funcs[stat]);
 
-    print_header(len,NULL);
+    print_player_header(len,NULL);
 
     // Print first 3 players
     int num_players = (vec_index(vec) >= 3) ? 3 : vec_index(vec);
-    for (int i = 0; i < num_players; i++) {
-        print_player(vec_data(vec, i), NULL, len);
-    }
+    for (int i = 0; i < num_players; i++) print_player(vec_data(vec, i), NULL, len);
     sleep(4);
+}
+
+//Function to print the stats of the team
+void print_team_stats(vector *vec,team *t,char *filename)
+{   
+     FILE *file = fopen(filename, "w");
+    if (!file ) 
+    {
+        error_message("Cannot open file\n");
+        return;
+    }
+    print_team_header(NULL);
+    print_team_header(file);
+
+    //The number of matches the team has played is the biggest number of matches of a player among all the others
+    int matches = vector_biggest_data(vec,player_match);
+    set_team_matches(t,matches);
+
+    print_team(t,NULL);
+    print_team(t,file);
+
+    sleep(5);
+    fclose(file);
 }

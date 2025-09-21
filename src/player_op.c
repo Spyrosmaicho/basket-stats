@@ -1,7 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "player.h"
 #include "menu.h"
 #include "io.h"
 #include "player_op.h"
@@ -95,8 +94,45 @@ bool read_player(hashtable **ht,vector **vec)
     return true;
 }
 
+//Helper function to add the stats of a player into the team stats
+void add_player_stats(team *t,player *pl)
+{
+    add_team_points(t,get_points(pl));
+    add_team_rebs(t,get_rebounds(pl));
+    add_team_def(t,get_def_rebounds(pl));
+    add_team_off(t,get_off_rebounds(pl));
+    add_team_ass(t,get_assists(pl));
+    add_team_steals(t,get_steals(pl));
+    add_team_blocks(t,get_blocks(pl));
+    add_team_tos(t,get_tos(pl));
+    add_team_mft(t,get_ft_made(pl));
+    add_team_aft(t,get_ft_attempted(pl));
+    add_team_mtwo(t,get_two_made(pl));
+    add_team_atwo(t,get_two_attempted(pl));
+    add_team_mthree(t,get_three_made(pl));
+    add_team_athree(t,get_three_attempted(pl));
+}
+//Helper function to remove the stats of a player from the team stats
+void remove_player_stats(team *t,player *pl)
+{
+    rem_team_points(t,get_points(pl));
+    rem_team_rebs(t,get_rebounds(pl));
+    rem_team_def(t,get_def_rebounds(pl));
+    rem_team_off(t,get_off_rebounds(pl));
+    rem_team_ass(t,get_assists(pl));
+    rem_team_steals(t,get_steals(pl));
+    rem_team_blocks(t,get_blocks(pl));
+    rem_team_tos(t,get_tos(pl));
+    rem_team_mft(t,get_ft_made(pl));
+    rem_team_aft(t,get_ft_attempted(pl));
+    rem_team_mtwo(t,get_two_made(pl));
+    rem_team_atwo(t,get_two_attempted(pl));
+    rem_team_mthree(t,get_three_made(pl));
+    rem_team_athree(t,get_three_attempted(pl));
+}
+
 //Function to remove a player from the list of the team
-bool remove_player(hashtable **ht,vector **vec)
+bool remove_player(hashtable **ht,vector **vec,team *t)
 {
     clear_stdin();
     printf("Type the name of the player you want to remove: ");
@@ -114,6 +150,9 @@ bool remove_player(hashtable **ht,vector **vec)
     /*remove a player from the vector*/
     vector_remove_by_item(*vec,name,check_player);
     
+    //Remove the stats of the player from the team stats
+    remove_player_stats(t,to_freed);
+
     delete_player(to_freed); //delete the player only once
     free(name);
     return true;
@@ -121,7 +160,7 @@ bool remove_player(hashtable **ht,vector **vec)
 }
 
 //Function to add stats to one specific player
-void add(hashtable *ht,int stat)
+void add(hashtable *ht,team *t,int stat)
 {
     clear_stdin();
     printf("Which player: ");
@@ -137,6 +176,8 @@ void add(hashtable *ht,int stat)
         free(name);
         return;
     } 
+
+    remove_player_stats(t,player_found);
 
     int value = 0;
     printf("%s",messages[stat-1]);
@@ -197,11 +238,13 @@ void add(hashtable *ht,int stat)
         if(stat%2==0) add_percent[stat/2-1](player_found);
         else add_percent[stat/2](player_found);
     }
+    //After we are sure that the added stats are valid we insert them into the team stats
+    add_player_stats(t,player_found);
     free(name);
 }
 
 //Function to add stats of a player
-void add_stats(hashtable *ht)
+void add_stats(hashtable *ht,team *t)
 {
     int choice = 0;
     do
@@ -219,7 +262,7 @@ void add_stats(hashtable *ht)
             choice = 0;   
         }
         system("clear");
-        if(choice!=15 && is_valid) add(ht,choice);
+        if(choice!=15 && is_valid) add(ht,t,choice);
     }while(choice!=15);
 
 }

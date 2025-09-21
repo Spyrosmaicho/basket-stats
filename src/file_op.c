@@ -2,10 +2,11 @@
 #include <stdlib.h>
 #include <string.h>
 #include "io.h"
+#include "player_op.h"
 #include "file_op.h"
 
 //Function to get the file with the players 
-bool load_file(hashtable **ht,vector **vec)
+bool load_file(hashtable **ht,vector **vec,team **t)
 {
     printf("Type the name of the file: ");
 
@@ -58,7 +59,7 @@ bool load_file(hashtable **ht,vector **vec)
 
         int array_of_stats[13] = {ft_made,two_made,three_made,ft_attempted,two_attempted,three_attempted,off,def,ass,steals,blocks,tos,matches};
         insert_player_stats(pl,array_of_stats);
-
+        add_player_stats(*t,pl);
         //Insert the player into the hashtable
         player *same = NULL;
         if((same = insert_hash(*ht,name,pl)))
@@ -76,5 +77,6 @@ bool load_file(hashtable **ht,vector **vec)
         return false;
     }
     fclose(f);
+
     return true;
 }

@@ -243,3 +243,9 @@ int player_name_len(void *data)
     player *pl = data;
     return strlen(pl->name);
 }
+
+int player_match(void *data)
+{
+    player *pl = data;
+    return pl->matches;
+}

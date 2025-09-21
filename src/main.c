@@ -10,14 +10,33 @@
 #include "menu.h"
 #include "new_data.h"
 #include "file_data.h"
-
+#include "team.h"
 
 int main(void)
 {
     //Create the hashtable and the vector for 15 players
     bool is_freed = false;
     hashtable *ht = create_hashtable(15);
+    if(!ht) 
+    {
+        error_message("Memory allocation failed.\n");
+        return 1;
+    }
     vector *vec = init(15);
+    if(!vec)
+    {
+        free_hashtable(ht);
+        error_message("Memory allocation failed.\n");
+        return 1;
+    }
+    team *t = create_team();
+    if(!t)
+    {
+        free_hashtable(ht);
+        destroy(vec);
+        error_message("Memory allocation failed.\n");
+        return 1;
+    }
     int user = 0;
     do
     {
@@ -28,15 +47,17 @@ int main(void)
         switch(user)
         {
             case 1: //add new data
-                new_data(ht,vec);
-                destroy(vec);
-                free_hashtable(ht);
+                new_data(ht,vec,t);
+                if(vec) destroy(vec);
+                if(ht) free_hashtable(ht);
+                destroy_team(t);
                 vec = NULL;
                 ht = NULL;
+                t = NULL;
                 is_freed = true;
                 break;
             case 2: //load data from a file
-                file_data(&ht,&vec,&is_freed);
+                file_data(&ht,&vec,&t,&is_freed);
                 break;
         }
         system("clear");
@@ -46,6 +67,7 @@ int main(void)
     {
         destroy(vec);
         free_hashtable(ht);
+        destroy_team(t);
     }
     return 0;
 }

@@ -13,7 +13,7 @@ void show_new_data_menu(void)
     printf("Basketball\n");
     line();
     printf("Menu:\n");
-    printf("1.Add a player\n2.Remove a player\n3.Add stats\n4.Top players\n5.Print player stats\n6.Print all players stats\n7.Exit\n");
+    printf("1.Add a player\n2.Remove a player\n3.Add stats\n4.Top players\n5.Print player stats\n6.Print all players stats\n7.Print team stats\n8.Exit\n");
 }
 
 
