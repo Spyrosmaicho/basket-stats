@@ -4,9 +4,12 @@
 #include <stdio.h>
 #include "hashtable.h"
 #include "vector.h"
+#include "team.h"
 
-//print header
-void print_header(int len,FILE *file);
+//print player header
+void print_player_header(int len,FILE *file);
+//print team header
+void print_team_header(FILE *file);
 
 //Function to use getline
 char *get_line(void);
@@ -15,7 +18,7 @@ char *get_line(void);
 void clear_stdin(void) ;
 
 //Functions to handle errors and print error messages 
-void error_handler(hashtable *ht,vector *vec);
+void error_handler(hashtable *ht,vector *vec,team *t);
 void error_message(char *mes);
 
 //For printing purposes
@@ -29,5 +32,8 @@ void print_all_players(vector *vec,char *filename);
 
 //Function to print the top 3 players according to user's choice
 void print_top_players(vector *vec, int stat) ;
+
+//Function to print the stats of the team
+void print_team_stats(vector *vec,team *t,char *filename);
 
 #endif

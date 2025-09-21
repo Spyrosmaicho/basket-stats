@@ -3,8 +3,9 @@
 
 #include "hashtable.h"
 #include "vector.h"
+#include "team.h"
 
 //Function to add new data
-void new_data(hashtable *ht,vector *vec);
+void new_data(hashtable *ht,vector *vec,team *t);
 
 #endif

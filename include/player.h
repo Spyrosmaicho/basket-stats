@@ -36,6 +36,9 @@ void print_player(player *pl,FILE *file,int len);
 //Function to return the length of the name of a player
 int player_name_len(void *data);
 
+//Function to return the number of matches of a player
+int player_match(void *data);
+
 /*GET FUNCTIONS*/
 char *get_name(player *person);
 int get_points(player *person);
