@@ -7,12 +7,6 @@
 #include "player.h"
 #include "team.h"
 
-//Function to add stats of a player
-void add_stats(hashtable *ht,team *t);
-
-//Helper function to add the stats of a player into the team stats
-void add_player_stats(team *t,player *pl);
-
 //Helper function to remove the stats of a player from the team stats
 void remove_player_stats(team *t,player *pl);
 
