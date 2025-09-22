@@ -21,7 +21,20 @@ void show_new_data_menu(void)
 void show_top_menu(void)
 {
     printf("Which statistic do you want to see the top 3 players?\n");
-    printf("1.Points\n2.Total Rebounds\n3.Offensive Rebounds\n4.Defensive Rebounds\n5.Assists\n6.Steals\n7.Blocks\n8.Turnovers\n9.Matches\n10.1p Percentage\n11.2p Percentage\n12.3p Percentage\n13.Exit\n");
+    printf("1.Points\n");
+    printf("2.Total Rebounds\n");
+    printf("3.Offensive Rebounds\n");
+    printf("4.Defensive Rebounds\n");
+    printf("5.Assists\n");
+    printf("6.Steals\n");
+    printf("7.Blocks\n");
+    printf("8.Turnovers\n");
+    printf("9.Fouls\n");
+    printf("10.Matches\n");
+    printf("11.1p Percentage\n");
+    printf("12.2p Percentage\n");
+    printf("13.3p Percentage\n");
+    printf("14.Exit\n");
 }
 
 void add_stats_menu(void)
@@ -41,6 +54,7 @@ void add_stats_menu(void)
     printf("11.Steals\n");
     printf("12.Blocks\n");
     printf("13.Turnovers\n");
-    printf("14.Matches\n");
-    printf("15.Exit\n");
+    printf("14.Fouls\n");
+    printf("15.Matches\n");
+    printf("16.Exit\n");
 }

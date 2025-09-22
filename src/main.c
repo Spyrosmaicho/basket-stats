@@ -4,6 +4,7 @@
 #include "vector.h"
 #include "hashtable.h"
 #include "player.h"
+#include "error.h"
 #include "player_op.h"
 #include "io.h"
 #include "file_op.h"

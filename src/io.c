@@ -1,6 +1,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include "player.h"
+#include "error.h"
 #include "io.h"
 
 // Array of function pointers for sorting
@@ -15,6 +16,7 @@ int (*cmp_funcs[])(const void *, const void *) =
     cmp_steals,
     cmp_blocks,
     cmp_tos,
+    cmp_fouls,
     cmp_matches,
     cmp_ft_percent,
     cmp_two_percent,
@@ -24,10 +26,10 @@ int (*cmp_funcs[])(const void *, const void *) =
 //print header
 void print_player_header(int len,FILE *file)
 {
-    !file ? printf("%-*s | %7s | %17s| %7s | %6s | %6s | %5s | %7s | %7s     | %7s     | %7s     | %6s | %6s | %6s\n",len,
-    "Name", "Points", "Rebounds(off/def)", "Assists", "Steals", "Blocks", "Tos", "Matches", "1pt"
-    ,"2pt", "3pt","1pt %" ,"2pt %", "3pt %") : fprintf(file,"%-*s | %7s | %17s| %7s | %6s | %6s | %5s | %7s | %7s     | %7s     | %7s     | %6s | %6s | %6s\n",len,
-    "Name", "Points", "Rebounds(off/def)", "Assists", "Steals", "Blocks", "Tos", "Matches", "1pt"
+    !file ? printf("%-*s | %7s | %17s| %7s | %6s | %6s | %5s | %7s | %7s | %7s     | %7s     | %7s     | %6s | %6s | %6s\n",len,
+    "Name", "Points", "Rebounds(off/def)", "Assists", "Steals", "Blocks", "Tos","Fouls", "Matches", "1pt"
+    ,"2pt", "3pt","1pt %" ,"2pt %", "3pt %") : fprintf(file,"%-*s | %7s | %17s| %7s | %6s | %6s | %5s | %7s| %7s | %7s     | %7s     | %7s     | %6s | %6s | %6s\n",len,
+    "Name", "Points", "Rebounds(off/def)", "Assists", "Steals", "Blocks", "Tos","Fouls", "Matches", "1pt"
     ,"2pt", "3pt","1pt %" ,"2pt %", "3pt %");
     
 }
@@ -35,30 +37,12 @@ void print_player_header(int len,FILE *file)
 //print team header
 void print_team_header(FILE *file)
 {
-    !file ? printf("%-7s | %17s  | %7s | %6s | %6s | %5s | %7s | %7s     | %7s     | %7s     | %6s | %6s | %6s\n",
-    "Points", "Rebounds(off/def)", "Assists", "Steals", "Blocks", "Tos", "Matches", "1pt","2pt", "3pt","1pt %" ,"2pt %", "3pt %")
-     : fprintf(file,"%-7s | %17s  | %7s | %6s | %6s | %5s | %7s | %7s     | %7s     | %7s     | %6s | %6s | %6s\n",
-    "Points", "Rebounds(off/def)", "Assists", "Steals", "Blocks", "Tos", "Matches", "1pt","2pt", "3pt","1pt %" ,"2pt %", "3pt %");
+    !file ? printf("%-7s | %17s  | %7s | %6s | %6s | %5s | %7s | %7s | %7s     | %7s     | %7s     | %6s | %6s | %6s\n",
+    "Points", "Rebounds(off/def)", "Assists", "Steals", "Blocks", "Tos","Fouls", "Matches", "1pt","2pt", "3pt","1pt %" ,"2pt %", "3pt %")
+     : fprintf(file,"%-7s | %17s  | %7s | %6s | %6s | %5s | %7s | %7s | %7s     | %7s     | %7s     | %6s | %6s | %6s\n",
+    "Points", "Rebounds(off/def)", "Assists", "Steals", "Blocks", "Tos","Fouls", "Matches", "1pt","2pt", "3pt","1pt %" ,"2pt %", "3pt %");
 }
 
-
-//Function to print a message for errors
-void error_message(char *mes)
-{
-    fprintf(stderr,"%s",mes);
-    sleep(1.5);
-}
-
-//Function to deallocate the memory if there is an error
-void error_handler(hashtable *ht,vector *vec,team *t)
-{
-    //FREE vector and hashtable
-    destroy(vec);
-    free_hashtable(ht);
-    destroy_team(t);
-    error_message("Error occured.\n");
-    exit(1);
-}
 
 //Function to use getline
 char *get_line(void)
@@ -125,6 +109,7 @@ void print_one_player(hashtable *ht)
     printf("Steals: %d\n",get_steals(player_found));
     printf("Blocks: %d\n",get_blocks(player_found));
     printf("Turnovers: %d\n",get_tos(player_found));
+    printf("Fouls: %d\n",get_fouls(player_found));
     printf("Matches: %d\n",get_matches(player_found));
     //Free throws percentage
     print_percentage("Free Throws - Percentage",get_ft_made(player_found),get_ft_attempted(player_found),get_1p_percentage(player_found));

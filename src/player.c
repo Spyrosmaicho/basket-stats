@@ -1,5 +1,6 @@
 #include <stdlib.h>
 #include <string.h>
+#include "stat_type.h"
 #include "player.h"
 
 struct player{
@@ -12,6 +13,7 @@ struct player{
     int steals;
     int blocks;
     int tos;
+    int fouls;
     int matches;
     int two_point_made;
     int two_point_attempted;
@@ -78,6 +80,13 @@ int cmp_tos(const void *a,const void *b)
     player *pb = *(player**)b;
     
     return pb->tos - pa->tos;
+}
+int cmp_fouls(const void *a,const void *b)
+{
+    player *pa = *(player **)a;
+    player *pb = *(player**)b;
+    
+    return pb->fouls - pa->fouls;
 }
 int cmp_matches(const void *a,const void *b)
 {
@@ -147,6 +156,7 @@ int get_steals(player *person){return person->steals;}
 int get_blocks(player *person){return person->blocks;}
 int get_matches(player *person){return person->matches;}
 int get_tos(player *person){return person->tos;}
+int get_fouls(player *person){return person->fouls;}
 int get_two_made(player *person){return person->two_point_made;}
 int get_two_attempted(player *person){return person->two_point_attempted;}
 int get_three_made(player *person){return person->three_point_made;} 
@@ -166,6 +176,7 @@ void add_ass(player *new,int ass){new->ass +=ass;}
 void add_steals(player *new,int steals){new->steals +=steals;}
 void add_blocks(player *new,int blocks){new->blocks +=blocks;}
 void add_tos(player *new,int tos){new->tos +=tos;}
+void add_fouls(player *new,int fouls){new->fouls +=fouls;}
 void add_matches(player *new,int matches){new->matches +=matches;}
 void add_2p_made(player *new,int tp){new->two_point_made += tp;new->points+=2*tp;}
 void add_2p_attempted(player *new,int tp){new->two_point_attempted += tp;}
@@ -189,6 +200,7 @@ void print_player(player *pl,FILE *file,int len)
     int steals = get_steals(pl);
     int blocks = get_blocks(pl);
     int tos = get_tos(pl);
+    int fouls = get_fouls(pl);
     int matches = get_matches(pl);
     int two_made = pl->two_point_made;
     int two_attempted = pl->two_point_attempted;
@@ -202,28 +214,30 @@ void print_player(player *pl,FILE *file,int len)
     if(two_attempted !=0) two_percent = get_2p_percentage(pl);
     double three_percent = 0.0;
     if(three_attempted!= 0) three_percent = get_3p_percentage(pl);
-   printf("%-*s | %7d | %8d (%d - %d) | %7d | %6d | %6d | %5d | %7d | %4d / %-4d | %4d / %-4d | %4d / %-4d | %6.2f | %6.2f | %6.2f\n",len,
-    name,points,rebs,off,def,ass,steals,blocks,tos,matches,ft_made,ft_attempted,two_made,two_attempted,three_made,three_attempted,one_percent,two_percent,three_percent);
-   if(file) fprintf(file,"%-*s | %7d | %8d (%d - %d) | %7d | %6d | %6d | %5d | %7d | %4d / %-4d | %4d / %-4d | %4d / %-4d | %6.2f | %6.2f | %6.2f\n",len,
-    name,points,rebs,off,def,ass,steals,blocks,tos,matches,ft_made,ft_attempted,two_made,two_attempted,three_made,three_attempted,one_percent,two_percent,three_percent);
+   printf("%-*s | %7d | %8d (%d - %d) | %7d | %6d | %6d | %5d | %5d |%7d | %4d / %-4d | %4d / %-4d | %4d / %-4d | %6.2f | %6.2f | %6.2f\n",len,
+    name,points,rebs,off,def,ass,steals,blocks,tos,fouls,matches,ft_made,ft_attempted,two_made,two_attempted,three_made,three_attempted,one_percent,two_percent,three_percent);
+   if(file) fprintf(file,"%-*s | %7d | %8d (%d - %d) | %7d | %6d | %6d | %5d | %5d | %7d | %4d / %-4d | %4d / %-4d | %4d / %-4d | %6.2f | %6.2f | %6.2f\n",len,
+    name,points,rebs,off,def,ass,steals,blocks,tos,fouls,matches,ft_made,ft_attempted,two_made,two_attempted,three_made,three_attempted,one_percent,two_percent,three_percent);
 }
 
 player *insert_player_stats(player *pl,int *array_of_stats)
 {
-    add_1p_made(pl,array_of_stats[0]);
-    add_2p_made(pl,array_of_stats[1]);
-    add_3p_made(pl,array_of_stats[2]);
-    add_1p_attempted(pl,array_of_stats[3]);
-    add_2p_attempted(pl,array_of_stats[4]);
-    add_3p_attempted(pl,array_of_stats[5]);
-    add_off_rebs(pl,array_of_stats[6]);
-    add_def_rebs(pl,array_of_stats[7]);
-    add_rebs(pl,array_of_stats[6] + array_of_stats[7]);
-    add_ass(pl,array_of_stats[8]);
-    add_steals(pl,array_of_stats[9]);
-    add_blocks(pl,array_of_stats[10]);
-    add_tos(pl,array_of_stats[11]);
-    add_matches(pl,array_of_stats[12]);
+    /*ARRAY IS ZERO INDEXED*/ 
+    add_1p_made(pl,array_of_stats[FT_MADE-1]);
+    add_2p_made(pl,array_of_stats[TWO_MADE-1]);
+    add_3p_made(pl,array_of_stats[THREE_MADE-1]);
+    add_1p_attempted(pl,array_of_stats[FT_ATTEMPTED-1]);
+    add_2p_attempted(pl,array_of_stats[TWO_ATTEMPTED-1]);
+    add_3p_attempted(pl,array_of_stats[THREE_ATTEMPTED-1]);
+    add_off_rebs(pl,array_of_stats[OFF_REBOUNDS-1]);
+    add_def_rebs(pl,array_of_stats[DEF_REBOUNDS-1]);
+    add_rebs(pl,array_of_stats[OFF_REBOUNDS-1] + array_of_stats[DEF_REBOUNDS-1]);
+    add_ass(pl,array_of_stats[ASSISTS-2]);
+    add_steals(pl,array_of_stats[STEALS-2]);
+    add_blocks(pl,array_of_stats[BLOCKS-2]);
+    add_tos(pl,array_of_stats[TURNOVERS-2]);
+    add_fouls(pl,array_of_stats[FOULS-2]);
+    add_matches(pl,array_of_stats[MATCHES-2]);
     
     add_2p_percent(pl);
     add_3p_percent(pl);

@@ -2,6 +2,8 @@
 #include <stdlib.h>
 #include <stdbool.h>
 #include "io.h"
+#include "error.h"
+#include "add_stats.h"
 #include "player_op.h"
 #include "menu.h"
 #include "new_data.h"
@@ -58,7 +60,7 @@ void new_data(hashtable *ht,vector *vec,team *t)
                         go_back = false;
                         show_top_menu();
                         printf("Type your choice: ");
-                        if(scanf("%d",&stat)!=1 || stat<1 || stat>13)
+                        if(scanf("%d",&stat)!=1 || stat<1 || stat>14)
                         {
                             error_message("Wrong choice.\n");
                             clear_stdin();
@@ -66,12 +68,12 @@ void new_data(hashtable *ht,vector *vec,team *t)
                             go_back = true; //We dont want to go back to the previous menu if there's a mistake from user
                         }
                         system("clear");
-                        if(stat!=13 && !go_back)  
+                        if(stat!=14 && !go_back)  
                         {
                             print_top_players(vec,stat);
                             system("clear");
                         }
-                    }while(stat!=13 && go_back);
+                    }while(stat!=14 && go_back);
                     break;
                 case 5:
                     ;

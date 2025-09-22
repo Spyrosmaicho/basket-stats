@@ -2,6 +2,9 @@
 #include <stdlib.h>
 #include <string.h>
 #include "io.h"
+#include "stat_type.h"
+#include "add_stats.h"
+#include "validate_stats.h"
 #include "player_op.h"
 #include "file_op.h"
 
@@ -41,13 +44,31 @@ bool load_file(hashtable **ht,vector **vec,team **t)
 
     //READ THE DATA FROM THE FILE USING FSCANF. THEN INSERT THEM INTO THE hashtable and the vector
     char name[100];
-    int off = 0,def = 0,ass = 0,steals=0,blocks=0,tos=0,matches=0,ft_made = 0,ft_attempted = 0,two_made = 0,two_attempted = 0,three_made = 0,three_attempted = 0;
+    int off = 0,def = 0,ass = 0,steals=0,blocks=0,tos=0,matches=0,ft_made = 0,ft_attempted = 0,two_made = 0,two_attempted = 0,three_made = 0,three_attempted = 0,fouls =0;
     int res = 0;
-    while((res = fscanf(f," %99[^|] | %d / %d | %d / %d | %d / %d | %d - %d | %d | %d | %d | %d | %d",
-        name,&ft_made,&ft_attempted,&two_made,&two_attempted,&three_made,&three_attempted,&off,&def,&ass,&steals,&blocks,&tos,& matches)) == 14)
+    while((res = fscanf(f," %99[^|] | %d / %d | %d / %d | %d / %d | %d - %d | %d | %d | %d | %d | %d | %d",
+        name,&ft_made,&ft_attempted,&two_made,&two_attempted,&three_made,&three_attempted,&off,&def,&ass,&steals,&blocks,&tos,&fouls,& matches)) == 15)
     {
-        //This cannot happen. It's not true
-        if(two_made > two_attempted || three_made > three_attempted || ft_made>ft_attempted) 
+        int array_of_stats[STAT_COUNT-1] = {ft_made,ft_attempted,two_made,two_attempted,three_made,three_attempted,off,def,ass,steals,blocks,tos,fouls,matches};
+        
+        //We check that the data we get from the file are valid
+        for(int i = 0;i<STAT_COUNT -1 ;i++)
+        {
+            if(!check_negative(array_of_stats[i])) 
+            {
+                fclose(f);
+                return false;
+            }
+        }
+
+        if(!check_pt(ft_made,ft_attempted) || !check_pt(two_made,two_attempted) || !check_pt(three_made,three_attempted)) 
+        {
+            fclose(f);
+            return false;
+        }
+
+        //for(int i = 0;i<STAT_COUNT-1;i++) printf("%d\t",array_of_stats[i]);
+        if(array_of_stats[MATCHES-2]==0 && check_not_zero(array_of_stats,STAT_COUNT-1)) 
         {
             fclose(f);
             return false;
@@ -57,9 +78,8 @@ bool load_file(hashtable **ht,vector **vec,team **t)
         while (len > 0 && name[len - 1] == ' ') name[--len] = '\0';
         player *pl = create_player(name);
 
-        int array_of_stats[13] = {ft_made,two_made,three_made,ft_attempted,two_attempted,three_attempted,off,def,ass,steals,blocks,tos,matches};
         insert_player_stats(pl,array_of_stats);
-        add_player_stats(*t,pl);
+        add_all_player_stats(*t,pl);
         //Insert the player into the hashtable
         player *same = NULL;
         if((same = insert_hash(*ht,name,pl)))
@@ -70,7 +90,7 @@ bool load_file(hashtable **ht,vector **vec,team **t)
         else insert(*vec,pl); //insert the player into the vector
 
     }
-    if(res < 12 && res!=EOF) 
+    if(res < 15 && res!=EOF) 
     {
         error_message("A stat is wrong.\n");
         fclose(f);
