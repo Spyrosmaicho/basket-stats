@@ -49,6 +49,7 @@ bool load_file(hashtable **ht,vector **vec,team **t)
     while((res = fscanf(f," %99[^|] | %d / %d | %d / %d | %d / %d | %d - %d | %d | %d | %d | %d | %d | %d",
         name,&ft_made,&ft_attempted,&two_made,&two_attempted,&three_made,&three_attempted,&off,&def,&ass,&steals,&blocks,&tos,&fouls,& matches)) == 15)
     {
+        //We exclude the REBOUNDS because we dont need them in files
         int array_of_stats[STAT_COUNT-1] = {ft_made,ft_attempted,two_made,two_attempted,three_made,three_attempted,off,def,ass,steals,blocks,tos,fouls,matches};
         
         //We check that the data we get from the file are valid
@@ -67,7 +68,7 @@ bool load_file(hashtable **ht,vector **vec,team **t)
             return false;
         }
 
-        //for(int i = 0;i<STAT_COUNT-1;i++) printf("%d\t",array_of_stats[i]);
+        //Every stat after REBOUNDS is at index - 2( = 1-indexed + we exclude REBOUNDS), those before are at index - 1
         if(array_of_stats[MATCHES-2]==0 && check_not_zero(array_of_stats,STAT_COUNT-1)) 
         {
             fclose(f);

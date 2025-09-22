@@ -223,6 +223,7 @@ void print_player(player *pl,FILE *file,int len)
 player *insert_player_stats(player *pl,int *array_of_stats)
 {
     /*ARRAY IS ZERO INDEXED*/ 
+    //Every stat after REBOUNDS is at index - 2( = 1-indexed + we exclude REBOUNDS), those before are at index - 1
     add_1p_made(pl,array_of_stats[FT_MADE-1]);
     add_2p_made(pl,array_of_stats[TWO_MADE-1]);
     add_3p_made(pl,array_of_stats[THREE_MADE-1]);
