@@ -1,0 +1,48 @@
+{
+	"players":[
+	 {
+		"Name": "lakis",
+		"Points": 15,
+		"Rebounds": 11,
+		"Off_Rebounds": 5,
+		"Def_Rebounds": 6,
+		"Assists": 5,
+		"Steals": 3,
+		"Blocks": 0,
+		"Turnovers": 3,
+		"Fouls": 6,
+		"Matches": 2,
+		"FT_Made": 3,
+		"FT_Attempted": 4,
+		"Two_Made": 3,
+		"Two_Attempted": 8,
+		"Three_Made": 2,
+		"Three_Attempted": 4,
+		"FT_Percent": 75.00,
+		"Two_Percent": 37.50,
+		"Three_Percent": 50.00
+	 },
+	 {
+		"Name": "takis",
+		"Points": 21,
+		"Rebounds": 10,
+		"Off_Rebounds": 6,
+		"Def_Rebounds": 4,
+		"Assists": 8,
+		"Steals": 1,
+		"Blocks": 0,
+		"Turnovers": 4,
+		"Fouls": 4,
+		"Matches": 1,
+		"FT_Made": 2,
+		"FT_Attempted": 3,
+		"Two_Made": 5,
+		"Two_Attempted": 6,
+		"Three_Made": 3,
+		"Three_Attempted": 5,
+		"FT_Percent": 66.67,
+		"Two_Percent": 83.33,
+		"Three_Percent": 60.00
+	 }
+  ]
+}
