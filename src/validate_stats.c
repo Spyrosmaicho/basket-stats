@@ -34,7 +34,7 @@ bool validate_match(player *pl,int value)
 //Function to validate fouls. Fouls cant be more than five
 bool validate_foul(player *pl,int value)
 {
-    return !(get_fouls(pl) + value > MAX_FOULS);
+    return !(get_fouls(pl) + value > MAX_FOULS*get_matches(pl));
 }
 
 //Function to validate made, attempted shots

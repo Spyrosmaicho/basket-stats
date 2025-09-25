@@ -48,7 +48,7 @@ int main(void)
         switch(user)
         {
             case 1: //add new data
-                new_data(ht,vec,t);
+                new_data(&ht,&vec,&t);
                 if(vec) destroy(vec);
                 if(ht) free_hashtable(ht);
                 destroy_team(t);

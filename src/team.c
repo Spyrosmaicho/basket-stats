@@ -1,5 +1,8 @@
 #include <stdlib.h>
+#include "player_op.h"
 #include "team.h"
+
+#define SIZE 20
 
 /*Hidden struct from user*/
 struct team
@@ -59,15 +62,32 @@ void print_team(team *t,FILE *file)
     int ft_made = t->ft_made;
     int ft_attempted = t->ft_attempted;
     double one_percent = 0.0;
-    if(ft_attempted != 0) one_percent = t->ft_made*100 / t->ft_attempted;
+    if(ft_attempted != 0) one_percent = t->ft_made*100.0 / t->ft_attempted;
     double two_percent = 0.0;
-    if(two_attempted !=0) two_percent = t->two_point_made*100 / t->two_point_attempted;
+    if(two_attempted !=0) two_percent = t->two_point_made*100.0 / t->two_point_attempted;
     double three_percent = 0.0;
-    if(three_attempted!= 0) three_percent = t->three_point_made*100 / t->three_point_attempted;
+    if(three_attempted!= 0) three_percent = t->three_point_made*100.0 / t->three_point_attempted;
    if(!file)printf("%-7d | %8d (%d - %d) | %7d | %6d | %6d | %5d | %5d | %7d | %4d / %-4d | %4d / %-4d | %4d / %-4d | %6.2f | %6.2f | %6.2f\n",
     points,rebs,off,def,ass,steals,blocks,tos,fouls,matches,ft_made,ft_attempted,two_made,two_attempted,three_made,three_attempted,one_percent,two_percent,three_percent);
    else fprintf(file,"%-7d | %8d (%d - %d) | %7d | %6d | %6d | %5d | %5d | %7d | %4d / %-4d | %4d / %-4d | %4d / %-4d | %6.2f | %6.2f | %6.2f\n",
     points,rebs,off,def,ass,steals,blocks,tos,fouls,matches,ft_made,ft_attempted,two_made,two_attempted,three_made,three_attempted,one_percent,two_percent,three_percent);
+}
+
+//Function to print a team in a json file
+void print_team_object(team *t,FILE *file_json)
+{
+    fprintf(file_json,"{\n\t\"Team Stats\": [\n\t{\n\t\t");
+    int array[] = {t->points,t->total_rebs,t->off_rebs,t->def_rebs,t->ass,t->steals,t->blocks,t->tos,t->fouls,t->matches,
+    t->ft_made,t->ft_attempted,t->two_point_made,t->two_point_attempted,t->three_point_made,t->three_point_attempted};
+    
+    int i = 1;
+    for(;i<SIZE-3;i++) fprintf(file_json,"%s: %d,\n\t\t",fields[i],array[i-1]);
+
+    //Now print the three percentages
+    array[11] > 0 ? fprintf(file_json,"%s: %.2lf,\n\t\t",fields[i++],t->ft_made*100.0 / t->ft_attempted) : fprintf(file_json,"%s: %.2lf,\n\t",fields[i++],0.0);
+    array[13]>0 ? fprintf(file_json,"%s: %.2lf,\n\t\t",fields[i++],t->two_point_made*100.0 / t->two_point_attempted) : fprintf(file_json,"%s: %.2lf,\n\t",fields[i++],0.0);
+    array[15]> 0 ? fprintf(file_json,"%s: %.2lf\n",fields[i],t->three_point_made*100.0 / t->three_point_attempted) : fprintf(file_json,"%s: %.2lf\n",fields[i],0.0);
+    fprintf(file_json,"\t}\n ]\n}");
 }
 
 

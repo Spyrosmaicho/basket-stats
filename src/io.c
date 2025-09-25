@@ -1,6 +1,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include "player.h"
+#include "player_op.h"
 #include "error.h"
 #include "io.h"
 
@@ -59,7 +60,7 @@ char *get_line(void)
 
     if(buff[numCh-1] == '\n')
         buff[numCh-1] = '\0';
-
+        
     return buff;
 }
 
@@ -125,28 +126,43 @@ void print_one_player(hashtable *ht)
 }
 
 //Function to print stats of all players
-void print_all_players(vector *vec,char *filename)
+void print_all_players(vector *vec,char *txt,char *json)
 {
-    FILE *file = fopen(filename, "w");
-    if (!file ) 
+    FILE *file_txt = fopen(txt, "w");
+    if (!file_txt ) return;
+
+    FILE *file_json = fopen(json,"w");
+    if(!file_json)
     {
-        error_message("Cannot open file\n");
+        fclose(file_txt);
         return;
     }
-
     int len = vector_biggest_data(vec,player_name_len);
 
+    //Print the header to the terminal
     print_player_header(len,NULL);
-    print_player_header(len,file);
+    //Print the header to the txt file
+    print_player_header(len,file_txt);
+
+    //Print json file
+    fprintf(file_json,"{\n\t\"players\":[\n\t");
 
     int numsSize = vec_index(vec);
     for(int i = 0;i<numsSize;i++)
     {
         player *pl = vec_data(vec,i);
-        print_player(pl,file,len);
+        //Print the player to both txt file and terminal
+        print_player(pl,file_txt,len);
+        //Print json
+        print_json_object(pl,file_json);
+        if(i + 1 != numsSize) fprintf(file_json,",\n\t");
     }
+
+    fprintf(file_json,"\n  ]\n}");
+
     sleep(4);
-    fclose(file);
+    fclose(file_txt);
+    fclose(file_json);
 }
 
 //Function to print the top 3 players according to user's choice
@@ -166,24 +182,31 @@ void print_top_players(vector *vec, int stat)
 }
 
 //Function to print the stats of the team
-void print_team_stats(vector *vec,team *t,char *filename)
+void print_team_stats(vector *vec,team *t,char *txt,char *json)
 {   
-     FILE *file = fopen(filename, "w");
-    if (!file ) 
+     FILE *file_txt = fopen(txt, "w");
+    if (!file_txt ) return;
+
+    FILE *file_json = fopen(json,"w");
+    if(!file_json) 
     {
-        error_message("Cannot open file\n");
+        fclose(file_txt);
         return;
     }
+
     print_team_header(NULL);
-    print_team_header(file);
+    print_team_header(file_txt);
 
     //The number of matches the team has played is the biggest number of matches of a player among all the others
     int matches = vector_biggest_data(vec,player_match);
     set_team_matches(t,matches);
 
     print_team(t,NULL);
-    print_team(t,file);
+    print_team(t,file_txt);
+
+    print_team_object(t,file_json);
 
     sleep(5);
-    fclose(file);
+    fclose(file_txt);
+    fclose(file_json);
 }

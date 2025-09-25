@@ -10,12 +10,12 @@ void error_message(char *mes)
 }
 
 //Function to deallocate the memory if there is an error
-void error_handler(hashtable *ht,vector *vec,team *t)
+void error_handler(hashtable *ht,vector *vec,team *t,char *message)
 {
     //FREE vector and hashtable
     destroy(vec);
     free_hashtable(ht);
     destroy_team(t);
-    error_message("Error occured.\n");
+    error_message(message);
     exit(1);
 }

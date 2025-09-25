@@ -16,6 +16,12 @@ void show_new_data_menu(void)
     printf("1.Add a player\n2.Remove a player\n3.Add stats\n4.Top players\n5.Print player stats\n6.Print all players stats\n7.Print team stats\n8.Exit\n");
 }
 
+void show_file_menu(void)
+{
+    printf("1.Txt File\n");
+    printf("2.Json File\n");
+    printf("3.Exit\n");
+}
 
 //Function to show the menu of the top-3 players case
 void show_top_menu(void)
