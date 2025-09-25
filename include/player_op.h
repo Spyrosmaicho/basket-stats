@@ -7,6 +7,8 @@
 #include "player.h"
 #include "team.h"
 
+extern const char *fields[];
+
 //Helper function to remove the stats of a player from the team stats
 void remove_player_stats(team *t,player *pl);
 
@@ -15,5 +17,8 @@ bool remove_player(hashtable **ht,vector **vec,team *t);
 
 //Function to read a new player and add him to the list of the team
 bool read_player(hashtable **ht,vector **vect);
+
+//Function to print an object of a player to a json file
+void print_json_object(player *pl,FILE *file_json);
 
 #endif

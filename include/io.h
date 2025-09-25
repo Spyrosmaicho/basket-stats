@@ -17,10 +17,6 @@ char *get_line(void);
 //Helper function to clear stdin in order to make getline work properly
 void clear_stdin(void) ;
 
-//Functions to handle errors and print error messages 
-void error_handler(hashtable *ht,vector *vec,team *t);
-void error_message(char *mes);
-
 //For printing purposes
 void line(void);
 
@@ -28,12 +24,12 @@ void line(void);
 void print_one_player(hashtable *ht);
 
 //Function to print stats of all players
-void print_all_players(vector *vec,char *filename);
+void print_all_players(vector *vec,char *txt,char *json);
 
 //Function to print the top 3 players according to user's choice
 void print_top_players(vector *vec, int stat) ;
 
 //Function to print the stats of the team
-void print_team_stats(vector *vec,team *t,char *filename);
+void print_team_stats(vector *vec,team *t,char *txt,char *json);
 
 #endif

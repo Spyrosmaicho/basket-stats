@@ -6,6 +6,6 @@
 #include "team.h"
 
 //Function to add new data
-void new_data(hashtable *ht,vector *vec,team *t);
+void new_data(hashtable **ht,vector **vec,team **t);
 
 #endif

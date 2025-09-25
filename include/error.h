@@ -9,6 +9,6 @@
 void error_message(char *mes);
 
 //Function to deallocate the memory if there is an error
-void error_handler(hashtable *ht,vector *vec,team *t);
+void error_handler(hashtable *ht,vector *vec,team *t,char *message);
 
 #endif

@@ -9,5 +9,6 @@ void show_main_menu(void);
 void show_new_data_menu(void);
 void show_top_menu(void);
 void add_stats_menu(void);
+void show_file_menu(void);
 
 #endif
