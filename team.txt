@@ -1,2 +1,0 @@
-Points  | Rebounds(off/def)| Assists | Steals | Blocks |   Tos | Matches |     1pt     |     2pt     |     3pt     |  1pt % |  2pt % |  3pt %
-24      |       17 (8 - 9) |       9 |      0 |      0 |     0 |       2 |    6 / 12   |    6 / 14   |    2 / 5    |  50.00 |  42.00 |  40.00
