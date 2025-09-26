@@ -1,4 +1,5 @@
 #include <stdlib.h>
+#include "field_type.h"
 #include "player_op.h"
 #include "team.h"
 
@@ -84,9 +85,9 @@ void print_team_object(team *t,FILE *file_json)
     for(;i<SIZE-3;i++) fprintf(file_json,"%s: %d,\n\t\t",fields[i],array[i-1]);
 
     //Now print the three percentages
-    array[11] > 0 ? fprintf(file_json,"%s: %.2lf,\n\t\t",fields[i++],t->ft_made*100.0 / t->ft_attempted) : fprintf(file_json,"%s: %.2lf,\n\t",fields[i++],0.0);
-    array[13]>0 ? fprintf(file_json,"%s: %.2lf,\n\t\t",fields[i++],t->two_point_made*100.0 / t->two_point_attempted) : fprintf(file_json,"%s: %.2lf,\n\t",fields[i++],0.0);
-    array[15]> 0 ? fprintf(file_json,"%s: %.2lf\n",fields[i],t->three_point_made*100.0 / t->three_point_attempted) : fprintf(file_json,"%s: %.2lf\n",fields[i],0.0);
+    array[FT_ATTEMPTED] > 0 ? fprintf(file_json,"%s: %.2lf,\n\t\t",fields[i++],t->ft_made*100.0 / t->ft_attempted) : fprintf(file_json,"%s: %.2lf,\n\t",fields[i++],0.0);
+    array[TWO_ATTEMPTED]>0 ? fprintf(file_json,"%s: %.2lf,\n\t\t",fields[i++],t->two_point_made*100.0 / t->two_point_attempted) : fprintf(file_json,"%s: %.2lf,\n\t",fields[i++],0.0);
+    array[THREE_ATTEMPTED]> 0 ? fprintf(file_json,"%s: %.2lf\n",fields[i],t->three_point_made*100.0 / t->three_point_attempted) : fprintf(file_json,"%s: %.2lf\n",fields[i],0.0);
     fprintf(file_json,"\t}\n ]\n}");
 }
 

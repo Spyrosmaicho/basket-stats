@@ -137,7 +137,6 @@ void new_data(hashtable **ht,vector **vec,team **t)
                     free(filename4);
                     break;
             }
-
             system("clear");
     }while(choice!=8);
 }

@@ -2,11 +2,13 @@
 #include <stdlib.h>
 #include <string.h>
 #include "menu.h"
+#include "field_type.h"
 #include "error.h"
 #include "io.h"
 #include "player_op.h"
 
 #define FIELDS_SIZE 20
+
 
 const char *fields[] = {
     "\"Name\"", "\"Points\"", "\"Rebounds\"","\"Off_Rebounds\"", "\"Def_Rebounds\"",
@@ -82,7 +84,7 @@ bool remove_player(hashtable **ht,vector **vec,team *t)
 }
 
 //Function to print an object of a player to a json file
-void print_json_object(player *pl,FILE *file_json)
+void print_player_object(player *pl,FILE *file_json)
 {
     fprintf(file_json," {\n\t\t");
     //First print the name
@@ -98,8 +100,8 @@ void print_json_object(player *pl,FILE *file_json)
     for(;i<FIELDS_SIZE-3;i++) fprintf(file_json,"%s: %d,\n\t\t",fields[i],array[i-1]);
 
     //Now print the three percentages
-    array[11] > 0 ? fprintf(file_json,"%s: %.2lf,\n\t\t",fields[i++],get_1p_percentage(pl)) : fprintf(file_json,"%s: %.2lf,\n\t\t",fields[i++],0.0);
-    array[13]> 0 ? fprintf(file_json,"%s: %.2lf,\n\t\t",fields[i++],get_2p_percentage(pl)) : fprintf(file_json,"%s: %.2lf,\n\t\t",fields[i++],0.0);
-    array[15] > 0 ? fprintf(file_json,"%s: %.2lf\n\t",fields[i],get_3p_percentage(pl)) : fprintf(file_json,"%s: %.2lf\n\t",fields[i],0.0);
+    array[FT_ATTEMPTED] > 0 ? fprintf(file_json,"%s: %.2lf,\n\t\t",fields[i++],get_1p_percentage(pl)) : fprintf(file_json,"%s: %.2lf,\n\t\t",fields[i++],0.0);
+    array[TWO_ATTEMPTED]> 0 ? fprintf(file_json,"%s: %.2lf,\n\t\t",fields[i++],get_2p_percentage(pl)) : fprintf(file_json,"%s: %.2lf,\n\t\t",fields[i++],0.0);
+    array[THREE_ATTEMPTED] > 0 ? fprintf(file_json,"%s: %.2lf\n\t",fields[i],get_3p_percentage(pl)) : fprintf(file_json,"%s: %.2lf\n\t",fields[i],0.0);
     fprintf(file_json," }");
 }

@@ -1,6 +1,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include "player.h"
+#include "team.h"
 #include "player_op.h"
 #include "error.h"
 #include "io.h"
@@ -154,8 +155,8 @@ void print_all_players(vector *vec,char *txt,char *json)
         //Print the player to both txt file and terminal
         print_player(pl,file_txt,len);
         //Print json
-        print_json_object(pl,file_json);
-        if(i + 1 != numsSize) fprintf(file_json,",\n\t");
+        print_player_object(pl,file_json);
+        if(i + 1 != numsSize) fprintf(file_json,",\n\t"); //Only the last value of json doesnt have ',' at the end
     }
 
     fprintf(file_json,"\n  ]\n}");

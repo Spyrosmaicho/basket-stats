@@ -53,7 +53,7 @@ FILE *read_file(void)
         return NULL;
     }
 
-    //free filename (caller should free the returned string of get_line)
+    //free the string that get_line returned.
     free(filename);
     return f;
 }
@@ -67,22 +67,13 @@ bool load_txt_file(hashtable **ht,vector **vec,team **t,char *message)
         strcpy(message,messages1[READ_FILE]);
         return false;
     }
-    //Read the first line of the file
-    char *buff = NULL;
-    size_t sizeAllocated = 0;
-    ssize_t numCh = 0;
-    if((numCh = getline(&buff, &sizeAllocated, f)) ==-1 )
+    //Read the first line of the file 
+    if(fscanf(f," %*[^\n]%*c")!=0) //If the first line doesnt match 
     {
         strcpy(message,messages1[READ_LINE]);
-        free(buff);
         fclose(f);
         return false;
     }
-
-    if(buff[numCh-1] == '\n')
-        buff[numCh-1] = '\0';
-
-    free(buff);
 
     //READ THE DATA FROM THE FILE USING FSCANF. THEN INSERT THEM INTO THE hashtable and the vector
     char name[100];
@@ -137,10 +128,11 @@ bool load_txt_file(hashtable **ht,vector **vec,team **t,char *message)
             return false;
         }
         insert_player_stats(pl,array_of_stats);
-        add_all_player_stats(*t,pl);
+        add_all_player_stats(*t,pl); 
+
         //Insert the player into the hashtable
         player *same = NULL;
-        if((same = insert_hash(*ht,name,pl)))
+        if((same = insert_hash(*ht,name,pl))) //If the have the same key, we update the value with the new one and delete the previous player
         {
             vector_find_item(*vec,same,pl);
             delete_player(same); 
