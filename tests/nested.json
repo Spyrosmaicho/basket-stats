@@ -1,0 +1,26 @@
+{
+  "team": {
+    "season": "2025",
+    "players": [
+      {
+        "Name": "Nick",
+        "stats": {
+          "Two_Attempted": 10,
+          "FT_Attempted": 5,
+          "FT_Made": 3,
+          "Three_Attempted": 6,
+          "Two_Made": 4,
+          "Three_Made": 1,
+          "Off_Rebounds": 2,
+          "Def_Rebounds": 6,
+          "Assists": 7,
+          "Steals": 3,
+          "Blocks": 0,
+          "Turnovers": 2,
+          "Fouls": 4,
+          "Matches": 2
+        }
+      }
+    ]
+  }
+}

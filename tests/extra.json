@@ -1,0 +1,26 @@
+{
+  "metadata": {
+    "date": "2025-09-26",
+    "arena": "OAKA"
+  },
+  "players": [
+    {
+      "Name": "Dimitris",
+      "FT_Attempted": 7,
+      "FT_Made": 5,
+      "Two_Attempted": 9,
+      "Two_Made": 3,
+      "Three_Attempted": 8,
+      "Three_Made": 2,
+      "Off_Rebounds": 1,
+      "Def_Rebounds": 4,
+      "Assists": 3,
+      "Steals": 1,
+      "Blocks": 0,
+      "Turnovers": 2,
+      "Fouls": 2,
+      "Matches": 1,
+      "extra": { "comment": "this should be ignored" }
+    }
+  ]
+}
