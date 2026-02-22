@@ -105,3 +105,26 @@ void print_player_object(player *pl,FILE *file_json)
     array[THREE_ATTEMPTED] > 0 ? fprintf(file_json,"%s: %.2lf\n\t",fields[i],get_3p_percentage(pl)) : fprintf(file_json,"%s: %.2lf\n\t",fields[i],0.0);
     fprintf(file_json," }");
 }
+
+
+//Function to print a player to a csv file
+void print_player_csv(player *pl,FILE *f){
+     double one_p = 0.0;
+    double two_p = 0.0;
+    double three_p = 0.0;
+    
+    if(get_ft_attempted(pl)!= 0) one_p = get_1p_percentage(pl);
+    if(get_two_attempted(pl)!=0) two_p = get_2p_percentage(pl);
+    if(get_three_attempted(pl)!=0) three_p = get_3p_percentage(pl);
+
+    fprintf(f, "\"%s\",%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%.2lf,%.2lf,%.2lf\n",
+            get_name(pl), 
+            get_points(pl), get_off_rebounds(pl), get_def_rebounds(pl),
+            get_assists(pl), get_steals(pl), get_blocks(pl), 
+            get_tos(pl), get_fouls(pl), get_matches(pl),
+            get_ft_made(pl), get_ft_attempted(pl),
+            get_two_made(pl), get_two_attempted(pl),
+            get_three_made(pl), get_three_attempted(pl),
+            one_p,two_p,three_p
+        );
+}

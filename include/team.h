@@ -17,6 +17,9 @@ void print_team(team *t,FILE *file);
 //Function to print a team in a json file
 void print_team_object(team *t,FILE *file_json);
 
+//Function to print a team in a csv file
+void print_team_csv(team *t,FILE *file_csv);
+
 //Function to set the matches of the team
 void set_team_matches(team *t,int matches);
 

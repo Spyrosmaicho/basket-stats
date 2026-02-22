@@ -2,14 +2,15 @@
 #define IO_H
 
 #include <stdio.h>
+#include <stdbool.h>
 #include "hashtable.h"
 #include "vector.h"
 #include "team.h"
 
 //print player header
-void print_player_header(int len,FILE *file);
+void print_player_header(int len,FILE *file,bool is_csv);
 //print team header
-void print_team_header(FILE *file);
+void print_team_header(FILE *file,bool is_csv);
 
 //Function to use getline
 char *get_line(void);
@@ -24,12 +25,12 @@ void line(void);
 void print_one_player(hashtable *ht);
 
 //Function to print stats of all players
-void print_all_players(vector *vec,char *txt,char *json);
+void print_all_players(vector *vec,char *txt,char *json,char *csv);
 
 //Function to print the top 3 players according to user's choice
 void print_top_players(vector *vec, int stat) ;
 
 //Function to print the stats of the team
-void print_team_stats(vector *vec,team *t,char *txt,char *json);
+void print_team_stats(vector *vec,team *t,char *txt,char *json,char *csv);
 
 #endif

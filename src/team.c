@@ -91,6 +91,37 @@ void print_team_object(team *t,FILE *file_json)
     fprintf(file_json,"\t}\n ]\n}");
 }
 
+void print_team_csv(team *t, FILE *file_csv)
+{
+    FILE *out = file_csv ? file_csv : stdout;
+    double one_p = 0.0;
+    double two_p = 0.0;
+    double three_p = 0.0;
+    int aft = get_team_aft(t);
+    int atwo = get_team_atwo(t);
+    int athree = get_team_athree(t);
+    if(aft!=0) one_p = get_team_mft(t) *100.0 / aft;
+    if(atwo!=0) two_p = get_team_mtwo(t) *100.0 /atwo;
+    if(athree!=0) three_p = get_team_mthree(t) *100.0 / athree;
+
+
+    fprintf(out, "%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%.2f,%.2f,%.2f\n",
+            get_team_points(t),
+            get_team_off(t),
+            get_team_def(t),
+            get_team_ass(t),
+            get_team_steals(t),
+            get_team_blocks(t),
+            get_team_tos(t),
+            get_team_fouls(t),
+            get_team_matches(t),
+            get_team_mft(t), get_team_aft(t),
+            get_team_mtwo(t), get_team_atwo(t),
+            get_team_mthree(t), get_team_athree(t),
+            one_p,
+            two_p,
+            three_p);
+}
 
     /*GET FUNCTIONS*/
 int get_team_points(team *t){return t->points;}

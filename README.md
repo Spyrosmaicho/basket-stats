@@ -66,15 +66,16 @@ Bash
 git clone [https://github.com/Spyrosmaicho/basket-stats.git](https://github.com/Spyrosmaicho/basket-stats.git)
 
 ### 2. Navigate to the directory
+```Bash
 cd basket-stats
-
+```
 ### 3. Compile the project
+```Bash
 make
-
+```
 ## Execution
 
 You can run the executable directly or use the provided shell script for memory checking:
-Bash
 
 ### Run the application directly
 ```Bash
@@ -90,3 +91,20 @@ To clean the compiled object files and the executable, simply run:
 ```Bash
 make clean
 ```
+
+
+### Data Analytics Integration (Python)
+Because the application exports data in standard CSV format, you can easily hook it up to a Python script for advanced visualizations. The repository includes a ready-to-use Python script (`plot_stats.py`) that generates a comprehensive analytics dashboard.
+
+**Requirements for the script to work:**
+* **File Name & Location:** The exported data file must be named `players.csv` and placed in the same directory as the Python script.
+* **Format:** The CSV must be generated directly by this C application to ensure the column headers exactly match the script's expectations.
+* **Minimum Data:** Your team must contain **at least 5 players**. This is required because the script specifically calculates and visualizes the "Top 5 Scorers" and "Top 5 Rebounders".
+
+**How to generate the dashboard:**
+Make sure you have `pandas` and `matplotlib` installed on your system (`pip install pandas matplotlib`). Then, simply run:
+
+```bash
+cd tests
+python3 plot_stats.py
+# Output: Dashboard has been succesfully created in 'team_dashboard.png'!

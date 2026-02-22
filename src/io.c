@@ -48,12 +48,13 @@ int (*cmp_funcs[])(const void *, const void *) =
 
 //print header
 //print header
-void print_player_header(int len, FILE *file)
+void print_player_header(int len, FILE *file,bool is_csv)
 {
     
     FILE *out = file ? file : stdout;
-
-    fprintf(out, "%-*s | %6s | %17s | %7s | %6s | %6s | %5s | %5s | %7s | %9s | %9s | %9s | %6s | %6s | %6s\n",
+    if(!is_csv)
+    {
+        fprintf(out, "%-*s | %6s | %17s | %7s | %6s | %6s | %5s | %5s | %7s | %9s | %9s | %9s | %6s | %6s | %6s\n",
             len, "Name",
             "Points",
             "Rebounds(off/def)",
@@ -69,13 +70,21 @@ void print_player_header(int len, FILE *file)
             "1pt %", 
             "2pt %", 
             "3pt %");
+    }
+    else
+    {
+        fprintf(out, "Name,Points,Off_Reb,Def_Reb,Assists,Steals,Blocks,Turnovers,Fouls,Matches,1pt_M,1pt_A,2pt_M,2pt_A,3pt_M,3pt_A,1pt %%,2pt %%,3pt %%\n");
+    }
 }
 
 //print team header
-void print_team_header(FILE *file)
+void print_team_header(FILE *file,bool is_csv)
 {
     FILE *out = file ? file : stdout;
-    fprintf(out, "%6s | %17s | %7s | %6s | %6s | %5s | %5s | %7s | %9s | %9s | %9s | %6s | %6s | %6s\n",
+    
+    if(!is_csv)
+    {
+        fprintf(out, "%6s | %17s | %7s | %6s | %6s | %5s | %5s | %7s | %9s | %9s | %9s | %6s | %6s | %6s\n",
             "Points", 
             "Rebounds(off/def)", 
             "Assists", 
@@ -90,6 +99,27 @@ void print_team_header(FILE *file)
             "1pt %", 
             "2pt %", 
             "3pt %");
+    }
+    else{
+        fprintf(out, "%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s\n",
+            "Points", 
+            "Rebounds(off/def)", 
+            "Assists", 
+            "Steals", 
+            "Blocks", 
+            "Tos",
+            "Fouls", 
+            "Matches", 
+           "1pt_M",
+           "1pt_A",
+           "2pt_M",
+           "2pt_A",
+           "3pt_M",
+           "3pt_A",
+            "1pt %", 
+            "2pt %", 
+            "3pt %");
+    }
 }
 
 
@@ -174,7 +204,7 @@ void print_one_player(hashtable *ht)
 }
 
 //Function to print stats of all players
-void print_all_players(vector *vec,char *txt,char *json)
+void print_all_players(vector *vec,char *txt,char *json,char *csv)
 {
     FILE *file_txt = fopen(txt, "w");
     if (!file_txt ) return;
@@ -185,13 +215,21 @@ void print_all_players(vector *vec,char *txt,char *json)
         fclose(file_txt);
         return;
     }
+    FILE *file_csv = fopen(csv,"w");
+    if(!file_csv){
+        fclose(file_txt);
+        fclose(file_json);
+        return;
+    }
     int len = vector_biggest_data(vec,player_name_len); //for the name
     int numsSize = vec_index(vec);
 
     //Print the header to the terminal
-    print_player_header(len,NULL);
+    print_player_header(len,NULL,false);
     //Print the header to the txt file
-    print_player_header(len,file_txt);
+    print_player_header(len,file_txt,false);
+    //Print the header to csv file
+    print_player_header(len,file_csv,true);
 
     //Print json file
     fprintf(file_json,"{\n\t\"players\":[\n\t");
@@ -201,6 +239,8 @@ void print_all_players(vector *vec,char *txt,char *json)
         player *pl = vec_data(vec,i);
         //Print the player to both txt file and terminal
         print_player(pl,file_txt,len);
+        //Print csv
+        print_player_csv(pl,file_csv);
         //Print json
         print_player_object(pl,file_json);
         if(i + 1 != numsSize) fprintf(file_json,",\n\t"); //Only the last value of json doesnt have ',' at the end
@@ -211,6 +251,7 @@ void print_all_players(vector *vec,char *txt,char *json)
     sleep(4);
     fclose(file_txt);
     fclose(file_json);
+    fclose(file_csv);
 }
 
 //Function to print the top 3 players according to user's choice
@@ -220,7 +261,7 @@ void print_top_players(vector *vec, int stat)
 
     // Sort the vector using the function pointer array
     vector_sort(vec, cmp_funcs[stat]);
-    print_player_header(len,NULL);
+    print_player_header(len,NULL,false);
 
     // Print first 3 players
     int num_players = (vec_index(vec) >= 3) ? 3 : vec_index(vec);
@@ -229,7 +270,7 @@ void print_top_players(vector *vec, int stat)
 }
 
 //Function to print the stats of the team
-void print_team_stats(vector *vec,team *t,char *txt,char *json)
+void print_team_stats(vector *vec,team *t,char *txt,char *json,char *csv)
 {   
      FILE *file_txt = fopen(txt, "w");
     if (!file_txt ) return;
@@ -241,8 +282,15 @@ void print_team_stats(vector *vec,team *t,char *txt,char *json)
         return;
     }
 
-    print_team_header(NULL);
-    print_team_header(file_txt);
+    FILE *file_csv = fopen(csv,"w");
+    if(!file_csv){
+        fclose(file_txt);
+        fclose(file_json);
+        return;
+    }
+    print_team_header(NULL,false);
+    print_team_header(file_txt,false);
+    print_team_header(file_csv,true);
 
     //The number of matches the team has played is the biggest number of matches of a player among all the others
     int matches = vector_biggest_data(vec,player_match);
@@ -251,9 +299,11 @@ void print_team_stats(vector *vec,team *t,char *txt,char *json)
     print_team(t,NULL);
     print_team(t,file_txt);
 
+    print_team_csv(t,file_csv);
     print_team_object(t,file_json);
 
     sleep(5);
     fclose(file_txt);
     fclose(file_json);
+    fclose(file_csv);
 }

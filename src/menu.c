@@ -20,7 +20,8 @@ void show_file_menu(void)
 {
     printf("1.Txt File\n");
     printf("2.Json File\n");
-    printf("3.Exit\n");
+    printf("3.Csv File\n");
+    printf("4.Exit\n");
 }
 
 //Function to show the menu of the top-3 players case

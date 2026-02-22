@@ -21,7 +21,7 @@ void file_data(hashtable **ht,vector **vec,team **t,bool *is_freed)
     {
         show_file_menu();
         printf("Type your choice: ");
-        if(scanf("%d",&choice)!=1 || choice <1 || choice >3)
+        if(scanf("%d",&choice)!=1 || choice <1 || choice >4)
         {
             error_message("Wrong choice\n");
             system("clear");
@@ -39,7 +39,12 @@ void file_data(hashtable **ht,vector **vec,team **t,bool *is_freed)
                 system("clear");
                 if(!load_json_file(ht,vec,t,message)) error_handler(*ht,*vec,*t,message);
                 break;
+            case 3:
+                clear_stdin();
+                system("clear");
+                if(!load_csv_file(ht,vec,t,message)) error_handler(*ht,*vec,*t,message);
+                break;
         }
         system("clear");
-    }while(choice!=3);
+    }while(choice!=4);
 }

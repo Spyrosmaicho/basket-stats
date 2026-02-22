@@ -203,3 +203,114 @@ bool load_json_file(hashtable **ht,vector **vec,team **t,char *message)
     free(json);
     return true;
 }
+
+
+//Function to insert stats from csv file into our data structures
+bool load_csv_file(hashtable **ht, vector **vec, team **t, char *message)
+{
+    FILE *f = read_file();
+    if(!f) 
+    {
+        strcpy(message, messages1[READ_FILE]);
+        return false;
+    }
+    
+    // Read the first line of the file (Header) and discard it
+    if(fscanf(f," %*[^\n]%*c") != 0) 
+    {
+        strcpy(message, messages1[READ_LINE]);
+        fclose(f);
+        return false;
+    }
+
+    // Variables for parsing (Notice we added a 'points' variable just to read and discard it, 
+    // since our insert_player_stats calculates points automatically)
+    char name[100];
+    int points = 0, off = 0, def = 0, ass = 0, steals = 0, blocks = 0, tos = 0, fouls = 0, matches = 0;
+    int ft_made = 0, ft_attempted = 0, two_made = 0, two_attempted = 0, three_made = 0, three_attempted = 0;
+    int res = 0;
+
+    // READ THE DATA FROM THE CSV USING FSCANF
+    // The format strictly expects: "Name",Points,Off,Def,Ass,Stl,Blk,TO,Fouls,Matches,1m,1a,2m,2a,3m,3a
+    while((res = fscanf(f, " \"%99[^\"]\",%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d",
+        name, &points, &off, &def, &ass, &steals, &blocks, &tos, &fouls, &matches,
+        &ft_made, &ft_attempted, &two_made, &two_attempted, &three_made, &three_attempted)) == 16)
+    {
+        // We structure the array exactly as expected by your logic
+        int array_of_stats[STAT_COUNT-1] = {ft_made, ft_attempted, two_made, two_attempted, three_made, three_attempted, off, def, ass, steals, blocks, tos, fouls, matches};
+        
+        //Negative Stats
+        for(int i = 0; i < STAT_COUNT - 1; i++)
+        {
+            if(!check_negative(array_of_stats[i])) 
+            {
+                fclose(f);
+                strcpy(message, messages1[NEGATIVE_STATS]);
+                return false;
+            }
+        }
+
+        //Invalid Shots (made > attempted)
+        if(!check_pt(ft_made, ft_attempted) || !check_pt(two_made, two_attempted) || !check_pt(three_made, three_attempted)) 
+        {
+            fclose(f);
+            strcpy(message, messages1[INVALID_SHOTS]);
+            return false;
+        }
+
+        //Fouls logic (Max 5 per match)
+        if(array_of_stats[FOULS - 2] > array_of_stats[MATCHES - 2] * 5) 
+        {
+            strcpy(message, messages1[INVALID_FOULS]);
+            fclose(f);
+            return false;
+        }
+
+        //Matches zero but stats exist
+        if(array_of_stats[MATCHES - 2] == 0 && check_not_zero(array_of_stats, STAT_COUNT - 1)) 
+        {
+            strcpy(message, messages1[INVALID_FOULS]); // Note: You might want an INVALID_MATCHES message here instead
+            fclose(f);
+            return false;
+        }
+
+        // Clean up trailing spaces from name just in case
+        int len = strlen(name);
+        while (len > 0 && name[len - 1] == ' ') name[--len] = '\0';
+        
+        // Entity Creation
+        player *pl = create_player(name);
+        if(!pl) 
+        {
+            strcpy(message, messages1[READ_PLAYER]);
+            fclose(f);
+            return false;
+        }
+        
+        insert_player_stats(pl, array_of_stats);
+        add_all_player_stats(*t, pl); 
+
+        // Insert or Update the hashtable and vector
+        player *same = NULL;
+        if((same = insert_hash(*ht, name, pl))) 
+        {
+            vector_find_item(*vec, same, pl);
+            delete_player(same); 
+        }
+        else 
+        {
+            insert(*vec, pl);
+        }
+    }
+
+    // If fscanf broke the loop and didn't read 16 items, but it's not the end of the file, the CSV is corrupted.
+    if(res < 16 && res != EOF) 
+    {
+        strcpy(message, messages1[INVALID_FORMAT]);
+        fclose(f);
+        return false;
+    }
+
+    fclose(f);
+    return true;
+}

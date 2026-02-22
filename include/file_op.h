@@ -11,4 +11,6 @@ bool load_txt_file(hashtable **ht,vector **vec,team **t,char *message);
 
 bool load_json_file(hashtable **ht,vector **vec,team **t,char *message);
 
+bool load_csv_file(hashtable **ht,vector **vec,team **t,char *message);
+
 #endif
