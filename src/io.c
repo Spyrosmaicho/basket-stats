@@ -1,10 +1,31 @@
 #include <stdlib.h>
 #include <unistd.h>
+#include <string.h>
 #include "player.h"
+#include "field_type.h"
 #include "team.h"
 #include "player_op.h"
 #include "error.h"
 #include "io.h"
+
+char *category_mess[] = 
+{
+    "Points",
+    "Rebounds(off/def)",
+    "Assists",
+    "Steals",
+    "Blocks",
+    "Turnovers",
+    "Fouls",
+    "Matches",
+    "1pt",
+    "2pt",
+    "3pt",
+    "1pt %",
+    "2pt %",
+    "3pt %"
+};
+
 
 // Array of function pointers for sorting
 int (*cmp_funcs[])(const void *, const void *) = 
@@ -26,23 +47,49 @@ int (*cmp_funcs[])(const void *, const void *) =
 };
 
 //print header
-void print_player_header(int len,FILE *file)
+//print header
+void print_player_header(int len, FILE *file)
 {
-    !file ? printf("%-*s | %7s | %17s| %7s | %6s | %6s | %5s | %7s | %7s | %7s     | %7s     | %7s     | %6s | %6s | %6s\n",len,
-    "Name", "Points", "Rebounds(off/def)", "Assists", "Steals", "Blocks", "Tos","Fouls", "Matches", "1pt"
-    ,"2pt", "3pt","1pt %" ,"2pt %", "3pt %") : fprintf(file,"%-*s | %7s | %17s| %7s | %6s | %6s | %5s | %7s| %7s | %7s     | %7s     | %7s     | %6s | %6s | %6s\n",len,
-    "Name", "Points", "Rebounds(off/def)", "Assists", "Steals", "Blocks", "Tos","Fouls", "Matches", "1pt"
-    ,"2pt", "3pt","1pt %" ,"2pt %", "3pt %");
     
+    FILE *out = file ? file : stdout;
+
+    fprintf(out, "%-*s | %6s | %17s | %7s | %6s | %6s | %5s | %5s | %7s | %9s | %9s | %9s | %6s | %6s | %6s\n",
+            len, "Name",
+            "Points",
+            "Rebounds(off/def)",
+            "Assists",
+            "Steals",
+            "Blocks",
+            "Tos",
+            "Fouls",
+            "Matches",
+            "1pt (m/a)", 
+            "2pt (m/a)", 
+            "3pt (m/a)",
+            "1pt %", 
+            "2pt %", 
+            "3pt %");
 }
 
 //print team header
 void print_team_header(FILE *file)
 {
-    !file ? printf("%-7s | %17s  | %7s | %6s | %6s | %5s | %7s | %7s | %7s     | %7s     | %7s     | %6s | %6s | %6s\n",
-    "Points", "Rebounds(off/def)", "Assists", "Steals", "Blocks", "Tos","Fouls", "Matches", "1pt","2pt", "3pt","1pt %" ,"2pt %", "3pt %")
-     : fprintf(file,"%-7s | %17s  | %7s | %6s | %6s | %5s | %7s | %7s | %7s     | %7s     | %7s     | %6s | %6s | %6s\n",
-    "Points", "Rebounds(off/def)", "Assists", "Steals", "Blocks", "Tos","Fouls", "Matches", "1pt","2pt", "3pt","1pt %" ,"2pt %", "3pt %");
+    FILE *out = file ? file : stdout;
+    fprintf(out, "%6s | %17s | %7s | %6s | %6s | %5s | %5s | %7s | %9s | %9s | %9s | %6s | %6s | %6s\n",
+            "Points", 
+            "Rebounds(off/def)", 
+            "Assists", 
+            "Steals", 
+            "Blocks", 
+            "Tos",
+            "Fouls", 
+            "Matches", 
+            "1pt", 
+            "2pt", 
+            "3pt",
+            "1pt %", 
+            "2pt %", 
+            "3pt %");
 }
 
 
@@ -138,7 +185,8 @@ void print_all_players(vector *vec,char *txt,char *json)
         fclose(file_txt);
         return;
     }
-    int len = vector_biggest_data(vec,player_name_len);
+    int len = vector_biggest_data(vec,player_name_len); //for the name
+    int numsSize = vec_index(vec);
 
     //Print the header to the terminal
     print_player_header(len,NULL);
@@ -148,7 +196,6 @@ void print_all_players(vector *vec,char *txt,char *json)
     //Print json file
     fprintf(file_json,"{\n\t\"players\":[\n\t");
 
-    int numsSize = vec_index(vec);
     for(int i = 0;i<numsSize;i++)
     {
         player *pl = vec_data(vec,i);
@@ -173,7 +220,6 @@ void print_top_players(vector *vec, int stat)
 
     // Sort the vector using the function pointer array
     vector_sort(vec, cmp_funcs[stat]);
-
     print_player_header(len,NULL);
 
     // Print first 3 players

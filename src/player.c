@@ -1,5 +1,6 @@
 #include <stdlib.h>
 #include <string.h>
+#include <math.h>
 #include "stat_type.h"
 #include "player.h"
 
@@ -257,6 +258,103 @@ int player_name_len(void *data)
 {
     player *pl = data;
     return strlen(pl->name);
+}
+
+int num_digits(int n) 
+{
+    if (n == 0) return 1;
+    return (int)log10(n) + 1;
+}
+
+int player_points_digits(void *data)
+{
+    player *pl = data;
+    return num_digits(pl->points);
+}
+
+int player_rebs_digits(void *data)
+{
+    player *pl = data;
+    return num_digits(pl->rebs);
+}
+
+int player_off_rebs_digits(void *data)
+{
+    player *pl = data;
+    return num_digits(pl->off_rebs);
+}
+
+int player_def_rebs_digits(void *data)
+{
+    player *pl =data;
+    return num_digits(pl->def_rebs);
+}
+
+int player_assists_digits(void *data)
+{
+    player *pl = data;
+    return num_digits(pl->ass);
+}
+
+int player_steals_digits(void *data)
+{
+    player *pl = data;
+    return num_digits(pl->steals);
+}
+int player_blocks_digits(void *data)
+{
+    player *pl = data;
+    return num_digits(pl->blocks);
+}
+
+int player_tos_digits(void *data)
+{
+    player *pl = data;
+    return num_digits(pl->tos);
+}
+
+int player_fouls_digits(void *data)
+{
+    player *pl = data;
+    return num_digits(pl->fouls);
+}
+
+int player_ftmade_digits(void *data)
+{
+    player *pl = data;
+    return num_digits(pl->ft_made);
+}
+int player_ftattempted_digits(void *data)
+{
+    player *pl = data;
+    return num_digits(pl->ft_attempted);
+}
+
+int player_twomade_digits(void *data)
+{
+    player *pl = data;
+    return num_digits(pl->two_point_made);
+}
+int player_twoattempted_digits(void *data)
+{
+    player *pl = data;
+    return num_digits(pl->two_point_attempted);
+}
+int player_threemade_digits(void *data)
+{
+    player *pl = data;
+    return num_digits(pl->three_point_made);
+}
+int player_threeattempted_digits(void *data)
+{
+    player *pl = data;
+    return num_digits(pl->three_point_attempted);
+}
+
+int player_matches_digits(void *data)
+{
+    player *pl = data;
+    return num_digits(pl->matches);
 }
 
 int player_match(void *data)

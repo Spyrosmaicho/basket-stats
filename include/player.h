@@ -83,4 +83,22 @@ void add_2p_percent(player *new);
 void add_3p_percent(player *new);
 void add_1p_percent(player *new);
 
+    /*GET DIGITS FUNCTIONS*/
+int player_points_digits(void *data);
+int player_rebs_digits(void *data);
+int player_off_rebs_digits(void *data);
+int player_def_rebs_digits(void *data);
+int player_assists_digits(void *data);
+int player_steals_digits(void *data);
+int player_blocks_digits(void *data);
+int player_tos_digits(void *data);
+int player_fouls_digits(void *data);
+int player_matches_digits(void *data);
+int player_ftmade_digits(void *data);
+int player_ftattempted_digits(void *data);
+int player_twomade_digits(void *data);
+int player_twoattempted_digits(void *data);
+int player_threemade_digits(void *data);
+int player_threeattempted_digits(void *data);
+
 #endif
