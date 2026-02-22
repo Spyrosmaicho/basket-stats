@@ -22,6 +22,10 @@ The project follows a standard, modular C architecture, separating declarations 
 
 ```text
 basket-stats/
+├── analytics/              # Data visualization pipeline (Python)
+│   ├── plot_stats.py       # Script that generates advanced analytics charts
+│   ├── players.csv         # Exported data file from the C application
+│   └── charts/             # Auto-generated directory containing the PNG charts
 ├── include/                # Header files (.h) - Data structures and APIs
 │   ├── hashtable.h         # Hashtable definitions
 │   ├── vector.h            # Vector definitions
@@ -37,7 +41,7 @@ basket-stats/
 │   ├── player.c, team.c    # Player and team management
 │   └── ...                 # Other modules (menus, error handling, stats)
 ├── tests/                  # Mock data files for parser validation & edge cases
-│   ├── players.json, team.json 
+│   ├── players.json, nba.json 
 │   ├── players.txt, team.txt   
 │   └── empty.json, nba.json... # Edge-case data for robust testing
 ├── .gitignore              # Ignored files for version control
@@ -94,17 +98,37 @@ make clean
 
 
 ### Data Analytics Integration (Python)
-Because the application exports data in standard CSV format, you can easily hook it up to a Python script for advanced visualizations. The repository includes a ready-to-use Python script (`plot_stats.py`) that generates a comprehensive analytics dashboard.
+Because the application exports data in standard CSV format, you can easily hook it up to a Python script for advanced visualizations. The repository includes a ready-to-use Python script (plot_stats.py) that generates 8 highly advanced analytical charts (including Radar charts, Bubble charts, and True Shooting % tracking).
 
-**Requirements for the script to work:**
-* **File Name & Location:** The exported data file must be named `players.csv` and placed in the same directory as the Python script.
-* **Format:** The CSV must be generated directly by this C application to ensure the column headers exactly match the script's expectations.
-* **Minimum Data:** Your team must contain **at least 5 players**. This is required because the script specifically calculates and visualizes the "Top 5 Scorers" and "Top 5 Rebounders".
+#### Requirements for the script to work:
 
-**How to generate the dashboard:**
-Make sure you have `pandas` and `matplotlib` installed on your system (`pip install pandas matplotlib`). Then, simply run:
+* **File Name & Location**: Export your data from the C application, name it players.csv, and place it inside the analytics/ folder.
 
-```bash
-cd tests
+* **Format**: The CSV must be generated directly by this C application to ensure the column headers exactly match the script's expectations.
+
+* **Minimum Data**: Your team must contain at least 5 players. This is required because the script specifically calculates and visualizes "Top 5" metrics and player comparisons.
+
+#### How to generate the dashboard:
+Make sure you have pandas and matplotlib installed on your system (pip install pandas matplotlib numpy). Then, simply run:
+```Bash
+cd analytics
 python3 plot_stats.py
-# Output: Dashboard has been succesfully created in 'team_dashboard.png'!
+# Output: Success! 8 advanced analytics charts have been generated in the 'charts' folder.
+```
+Once the script finishes execution, it will automatically create a charts/ subdirectory inside your analytics/ folder. There, you will find 8 individual high-resolution .png files visualizing different aspects of your team's performance:
+
+1) chart_1_overall_impact.png (Bar Chart)
+
+2) chart_2_scoring_distribution.png (Pie Chart)
+
+3) chart_3_playmaking_efficiency.png (Scatter Plot)
+
+4) chart_4_rebounding_breakdown.png (Stacked Bar Chart)
+
+5) chart_5_defensive_impact.png (Bar Chart)
+
+6) chart_6_player_profiles_radar.png (Radar / Spider Web Chart)
+
+7) chart_7_shooting_efficiency_bubble.png (Bubble Chart)
+
+8) chart_8_true_shooting_efficiency.png (Dual-Axis Line & Bar Chart)
