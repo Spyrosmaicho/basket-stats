@@ -252,6 +252,12 @@ void print_all_players(vector *vec,char *txt,char *json,char *csv)
     fclose(file_txt);
     fclose(file_json);
     fclose(file_csv);
+
+    system("clear");
+    printf("\n[System] Syncing data with SQLite database...\n");
+    save_to_sql(vec);
+    printf("[System] Database updated successfully.\n");
+    sleep(5);
 }
 
 //Function to print the top 3 players according to user's choice

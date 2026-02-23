@@ -21,4 +21,7 @@ void print_player_object(player *pl,FILE *file_json);
 //Function to print a player to a csv file
 void print_player_csv(player *pl,FILE *f);
 
+//Function to add stats to a SQL database
+void save_to_sql(vector *vec);
+
 #endif
