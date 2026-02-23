@@ -142,3 +142,5 @@ This will automatically open a local web page in your default browser featuring:
 - **Pro Head-to-Head Cards**: Compare two players side-by-side with conditional color-coded formatting to instantly see who wins in each statistical category.
 
 - **AI Scouting & Clustering (Machine Learning)**: An advanced ML pipeline built with `scikit-learn`. Features a **Player Similarity Engine** (using Cosine Similarity) to find statistical "twins" across the league, and **Archetype Clustering** (using PCA dimensionality reduction and K-Means) to automatically group players into distinct playstyles on an interactive 2D scatter plot.
+
+- **Leaderboard**: A dedicated ranking system that identifies the Top 5 performers in key categories: Scoring, Playmaking (Assists), and Defensive Impact (Steals + Blocks).
