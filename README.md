@@ -2,7 +2,6 @@
 
 ![C](https://img.shields.io/badge/Language-C-00599C?style=for-the-badge&logo=c)
 ![Make](https://img.shields.io/badge/Build-Make-4CAF50?style=for-the-badge&logo=gnu)
-![Valgrind](https://img.shields.io/badge/Memory-Zero_Leaks-success?style=for-the-badge)
 
 A lightning-fast, memory-safe Command Line Interface (CLI) application written in pure C for managing, analyzing, and exporting basketball team and player statistics.
 
@@ -11,10 +10,10 @@ Built completely from scratch with **zero external dependencies**, this project 
 ## Key Features
 
 * **Custom Data Structures**: Utilizes a synergistic approach with a dynamic array (`Vector`) for sequential iterations and an `O(1)` `Hashtable` for lightning-fast player lookups.
-* **Advanced Player Analytics**: Tracks points, rebounds (offensive/defensive), assists, steals, blocks, turnovers, fouls, and shooting percentages (1pt, 2pt, 3pt).
+* **Advanced Player Analytics**: Tracks points, rebounds, assists, steals, blocks, turnovers, fouls, and shooting percentages.
 * **Robust Data Serialization**: Import and export team/player data dynamically to `.txt` or `.json` formats.
-* **Custom JSON Engine**: Reads, parses, and validates JSON files strictly from scratch, without relying on 3rd-party libraries.
 * **Memory Safe**: Strictly tested with Valgrind. Absolutely **0 memory leaks**, 0 invalid reads, and no segmentation faults.
+* **Interactive Web Dashboard**: Includes a modern Data Analytics GUI built with Python and Streamlit to visualize the exported data, run complex queries, and compare players head-to-head.
 
 ## Project Architecture
 
@@ -22,32 +21,32 @@ The project follows a standard, modular C architecture, separating declarations 
 
 ```text
 basket-stats/
-├── analytics/              # Data visualization pipeline (Python)
-│   ├── plot_stats.py       # Script that generates advanced analytics charts
-│   ├── players.csv         # Exported data file from the C application
-│   └── charts/             # Auto-generated directory containing the PNG charts
+├── .github/workflows/      # CI/CD pipelines
+│   └── c-build.yml         # GitHub Actions automated build testing
+├── analytics/              # Data visualization and Web GUI (Python)
+│   ├── app.py              # Streamlit Web Application (Interactive Dashboard)
+│   ├── players.csv         # Exported data file from the C backend
+│   └── nba.csv             # Exported real NBA data
 ├── include/                # Header files (.h) - Data structures and APIs
 │   ├── hashtable.h         # Hashtable definitions
 │   ├── vector.h            # Vector definitions
-│   ├── json_parser.h       # JSON parsing API
-│   ├── player.h, team.h    # Core entity definitions
-│   └── ...                 # Other headers (menu, file ops, validations)
+│   ├── json_parser.h       # Custom JSON parsing API
+│   └── ...                 # Core entity and utility headers
+├── run/                    # Build and Execution directory
+│   ├── Makefile            # Build automation for the C program
+│   └── run.sh              # Bash script for execution and Valgrind memory checks
 ├── src/                    # Source files (.c) - Core logic and implementations
 │   ├── main.c              # Application entry point
-│   ├── hashtable.c         # Custom Hashtable logic
+│   ├── hashtable.c         # Custom Hashtable logic (O(1) lookups)
 │   ├── vector.c            # Dynamic array logic
-│   ├── json_parser.c       # Custom JSON parsing engine
-│   ├── io.c, file_op.c     # Terminal formatting and File I/O operations
-│   ├── player.c, team.c    # Player and team management
-│   └── ...                 # Other modules (menus, error handling, stats)
-├── tests/                  # Mock data files for parser validation & edge cases
-│   ├── players.json, nba.json 
-│   ├── players.txt, team.txt   
-│   └── empty.json, nba.json... # Edge-case data for robust testing
+│   └── ...                 # Logic for menus, file ops, and statistics
+├── tests/                  # API integrations and mock data
+│   ├── fetch_nba.py        # Python script to fetch real-time data from the NBA API
+│   ├── nba.json            # Real NBA player data formatted for the C parser
+│   └── new.txt             # Mock data for robustness testing
 ├── .gitignore              # Ignored files for version control
 ├── LICENSE                 # Project license
-├── Makefile                # Build automation with automatic dependency tracking
-└── run.sh                  # Bash script for execution and Valgrind checks
+└── README.md               # Project documentation
 ```
 
 
@@ -71,7 +70,7 @@ git clone [https://github.com/Spyrosmaicho/basket-stats.git](https://github.com/
 
 ### 2. Navigate to the directory
 ```Bash
-cd basket-stats
+cd basket-stats/run
 ```
 ### 3. Compile the project
 ```Bash
@@ -79,7 +78,7 @@ make
 ```
 ## Execution
 
-You can run the executable directly or use the provided shell script for memory checking:
+You can run the executable directly or use the provided shell script for memory checking(make sure you are still inside the run/ folder):
 
 ### Run the application directly
 ```Bash
@@ -91,44 +90,55 @@ You can run the executable directly or use the provided shell script for memory 
 ./run.sh
 ```
 
-To clean the compiled object files and the executable, simply run:
+To clean the compiled object files, simply run the following instruction inside the `run/` directory:
 ```Bash
 make clean
 ```
 
 
-### Data Analytics Integration (Python)
-Because the application exports data in standard CSV format, you can easily hook it up to a Python script for advanced visualizations. The repository includes a ready-to-use Python script (plot_stats.py) that generates 8 highly advanced analytical charts (including Radar charts, Bubble charts, and True Shooting % tracking).
+### Data Analytics Web Dashboard & NBA API
 
-#### Requirements for the script to work:
+This project goes beyond a simple C backend by providing a full end-to-end data pipeline. It features a modern, interactive Web Dashboard built with Python, and the ability to fetch real-world data directly from the NBA.
 
-* **File Name & Location**: Export your data from the C application, name it players.csv, and place it inside the analytics/ folder.
+####  Fetching Real NBA Data (Optional)
+Instead of typing players manually, you can populate the C application with real NBA statistics from the current season.
+Ensure you have the API library installed: `pip install nba_api`
+```bash
+# Navigate to the tests folder
+cd tests
 
-* **Format**: The CSV must be generated directly by this C application to ensure the column headers exactly match the script's expectations.
+# Run the fetch script
+python3 fetch_nba.py
+```
+This will generate `nba.json`, which contains the top NBA players accurately formatted. You can then load this file inside the C application and interact with real stats!
 
-* **Minimum Data**: Your team must contain at least 5 players. This is required because the script specifically calculates and visualizes "Top 5" metrics and player comparisons.
+#### Launching the Web Dashboard
 
-#### How to generate the dashboard:
-Make sure you have pandas and matplotlib installed on your system (pip install pandas matplotlib numpy). Then, simply run:
+The C application exports the memory-stored data into a clean CSV format. You can use the included Python Web Dashboard to interact with this data visually.
+
+**Requirements**:
+
+Export your data from the C application and ensure it is saved as players.csv (or nba.csv) inside the analytics/ folder.
+
+**Installation & Execution**:
+
+Ensure you have the required Python libraries for the GUI and interactive charts:
+```Bash
+pip install streamlit pandas matplotlib numpy plotly scikit-learn
+```
+Then, navigate to the analytics folder and start the Streamlit server:
 ```Bash
 cd analytics
-python3 plot_stats.py
-# Output: Success! 8 advanced analytics charts have been generated in the 'charts' folder.
+streamlit run app.py
 ```
-Once the script finishes execution, it will automatically create a charts/ subdirectory inside your analytics/ folder. There, you will find 8 individual high-resolution .png files visualizing different aspects of your team's performance:
+This will automatically open a local web page in your default browser featuring:
 
-1) chart_1_overall_impact.png (Bar Chart)
+- **Season Highlights (KPIs)**: Instant top-level metrics calculating the Top Scorer, Best Playmaker, and Defensive Anchor of the loaded roster.
 
-2) chart_2_scoring_distribution.png (Pie Chart)
+- **Interactive Plotly Charts**: Select and view advanced metrics. Hover over data points to see details, zoom in, and analyze Player Profiles (Radar Charts), Playmaking Efficiency, and True Shooting %.
 
-3) chart_3_playmaking_efficiency.png (Scatter Plot)
+- **Advanced Database Queries**: Use live UI sliders to filter the entire roster based on multiple statistical categories (Points, Rebounds, Assists, Steals, Percentages). Includes a one-click CSV download for the filtered results.
 
-4) chart_4_rebounding_breakdown.png (Stacked Bar Chart)
+- **Pro Head-to-Head Cards**: Compare two players side-by-side with conditional color-coded formatting to instantly see who wins in each statistical category.
 
-5) chart_5_defensive_impact.png (Bar Chart)
-
-6) chart_6_player_profiles_radar.png (Radar / Spider Web Chart)
-
-7) chart_7_shooting_efficiency_bubble.png (Bubble Chart)
-
-8) chart_8_true_shooting_efficiency.png (Dual-Axis Line & Bar Chart)
+- **AI Scouting & Clustering (Machine Learning)**: An advanced ML pipeline built with `scikit-learn`. Features a **Player Similarity Engine** (using Cosine Similarity) to find statistical "twins" across the league, and **Archetype Clustering** (using PCA dimensionality reduction and K-Means) to automatically group players into distinct playstyles on an interactive 2D scatter plot.
