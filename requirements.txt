@@ -1,0 +1,8 @@
+streamlit
+pandas
+numpy
+plotly
+scikit-learn
+requests
+nba_api
+urllib3
