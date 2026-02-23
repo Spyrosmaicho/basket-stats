@@ -107,23 +107,31 @@ To clean the compiled object files, simply run the following instruction inside 
 ```Bash
 make clean
 ```
+### Multi-League Data Engine
 
+The project features a sophisticated data fetching system (`fetch_nba.py`) that bridges the gap between raw web APIs and the C backend.
+#### Dynamic Roster Generation
+
+The engine now includes a curated database of 100 elite Euroleague players and real-time integration with the NBA API (Ensure you have the API library installed: `pip install nba_api`). When running the fetch script, you can choose between three modes:
+
+- **NBA Only**: Fetches the top 50 performers from the current NBA season.
+
+- **Euroleague Only**: Randomly selects 25 players from the curated 100-player Euroleague database to ensure a dynamic experience every time.
+
+- **Mixed Mode**: Generates a hybrid roster of 25 NBA stars and 25 random Euroleague stars, allowing for cross-continental statistical comparisons.
+
+#### Execution:
+```Bash
+# Navigate to the tests folder
+cd tests
+# Run the fetch script
+python3 fetch_nba.py
+```
+This generates `nba.json`, which can be imported directly into the C application.
 
 ### Data Analytics Web Dashboard & NBA API
 
 This project goes beyond a simple C backend by providing a full end-to-end data pipeline. It features a modern, interactive Web Dashboard built with Python, and the ability to fetch real-world data directly from the NBA.
-
-####  Fetching Real NBA Data (Optional)
-Instead of typing players manually, you can populate the C application with real NBA statistics from the current season.
-Ensure you have the API library installed: `pip install nba_api`
-```bash
-# Navigate to the tests folder
-cd tests
-
-# Run the fetch script
-python3 fetch_nba.py
-```
-This will generate `nba.json`, which contains the top NBA players accurately formatted. You can then load this file inside the C application and interact with real stats!
 
 #### Launching the Web Dashboard
 
