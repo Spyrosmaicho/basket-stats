@@ -111,13 +111,10 @@ STEP4["Step 4<br/>Clear Database"]
 
 DASH["Analytics Dashboard
 
-• KPI Cards
-• Interactive Charts
-• SQL Queries
-• Head-to-Head Comparison
-• ML Similarity Search
-• PCA + Clustering
-• Leaderboards"]
+KPI
+Charts
+ML
+Leaderboards"]
 
 ST --> STEP1
 ST --> STEP2
@@ -170,17 +167,11 @@ Persistent Process"]
 
 CINTERACTIVE["Interactive Mode"]
 
-VALID["Validation Layer
+VALID["Validation Engine
 
-✔ Input validation
-
-✔ Basketball rules
-
-✔ Percentages
-
-✔ Team consistency
-
-✔ Error handling"]
+• Input
+• Basketball Rules
+• Consistency"]
 
 DS["Low-Level Data Structures
 
