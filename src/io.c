@@ -146,6 +146,8 @@ char *get_line(void)
 //Helper function to clear stdin in order to make getline work properly
 void clear_stdin(void) 
 {
+    if (!isatty(STDIN_FILENO))
+        return;
     int c;
     while ((c = getchar()) != '\n' && c != EOF);
 }

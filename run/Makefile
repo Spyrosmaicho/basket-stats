@@ -4,7 +4,7 @@ LDLIBS = -lm -lsqlite3
 SRC = ../src/main.c ../src/io.c ../src/file_op.c ../src/player_op.c ../src/hashtable.c \
       ../src/player.c ../src/vector.c ../src/menu.c ../src/new_data.c ../src/file_data.c \
       ../src/team.c ../src/error.c ../src/add_stats.c ../src/validate_stats.c ../src/json_parser.c \
-      ../src/json_validator.c 
+      ../src/json_validator.c  ../src/daemon.c
 
 OBJS = $(SRC:.c=.o)
 DEPS = $(OBJS:.o=.d)

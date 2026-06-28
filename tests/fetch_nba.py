@@ -4,40 +4,78 @@ import requests
 import urllib3
 import pandas as pd
 from nba_api.stats.endpoints import leaguedashplayerstats
+import sys
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
+import time 
+
+def get_nba_fallback(limit):
+    backup_players = [
+        {"Name": "Luka Doncic", "FT_Made": 380, "FT_Attempted": 485, "Two_Made": 410, "Two_Attempted": 720, "Three_Made": 185, "Three_Attempted": 490, "Off_Rebounds": 50, "Def_Rebounds": 450, "Assists": 520, "Steals": 80, "Blocks": 30, "Turnovers": 210, "Fouls": 110, "Matches": 55},
+        {"Name": "Shai Gilgeous-Alexander", "FT_Made": 400, "FT_Attempted": 450, "Two_Made": 480, "Two_Attempted": 850, "Three_Made": 80, "Three_Attempted": 220, "Off_Rebounds": 45, "Def_Rebounds": 250, "Assists": 350, "Steals": 120, "Blocks": 45, "Turnovers": 130, "Fouls": 125, "Matches": 58},
+        {"Name": "Giannis Antetokounmpo", "FT_Made": 350, "FT_Attempted": 530, "Two_Made": 550, "Two_Attempted": 880, "Three_Made": 25, "Three_Attempted": 95, "Off_Rebounds": 150, "Def_Rebounds": 510, "Assists": 360, "Steals": 65, "Blocks": 60, "Turnovers": 180, "Fouls": 150, "Matches": 56},
+        {"Name": "Nikola Jokic", "FT_Made": 250, "FT_Attempted": 300, "Two_Made": 460, "Two_Attempted": 750, "Three_Made": 70, "Three_Attempted": 190, "Off_Rebounds": 160, "Def_Rebounds": 560, "Assists": 500, "Steals": 75, "Blocks": 50, "Turnovers": 160, "Fouls": 140, "Matches": 57},
+        {"Name": "Jayson Tatum", "FT_Made": 290, "FT_Attempted": 350, "Two_Made": 310, "Two_Attempted": 610, "Three_Made": 160, "Three_Attempted": 420, "Off_Rebounds": 55, "Def_Rebounds": 410, "Assists": 280, "Steals": 55, "Blocks": 35, "Turnovers": 140, "Fouls": 110, "Matches": 56}
+    ]
+    return backup_players[:limit]
+
+
 def get_nba_data(limit=25):
     print(f" Fetching Top {limit} NBA players ...")
-    try:
-        response = leaguedashplayerstats.LeagueDashPlayerStats(season='2012-13')
-        df = response.get_data_frames()[0]
-        top_players = df.sort_values(by='PTS', ascending=False).head(limit)
-        
-        players_array = []
-        for _, row in top_players.iterrows():
-            player = {
-                "Name": f"{row['PLAYER_NAME']}",
-                "FT_Made": int(row['FTM']),
-                "FT_Attempted": int(row['FTA']),
-                "Two_Made": int(row['FGM']) - int(row['FG3M']),
-                "Two_Attempted": int(row['FGA']) - int(row['FG3A']),
-                "Three_Made": int(row['FG3M']),
-                "Three_Attempted": int(row['FG3A']),
-                "Off_Rebounds": int(row['OREB']),
-                "Def_Rebounds": int(row['DREB']),
-                "Assists": int(row['AST']),
-                "Steals": int(row['STL']),
-                "Blocks": int(row['BLK']),
-                "Turnovers": int(row['TOV']),
-                "Fouls": int(row['PF']),
-                "Matches": int(row['GP'])
-            }
-            players_array.append(player)
-        return players_array
-    except Exception as e:
-        print(f" NBA API Error: {e}")
-        return []
+    
+    custom_headers = {
+        'Host': 'stats.nba.com',
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
+        'Accept': 'application/json, text/plain, */*',
+        'Accept-Language': 'en-US,en;q=0.9',
+        'Referer': 'https://www.nba.com/',
+        'Origin': 'https://www.nba.com',
+        'Connection': 'keep-alive',
+    }
+
+    for attempt in range(3): 
+        try:
+            print(f" Attempt {attempt + 1}/3...")
+            response = leaguedashplayerstats.LeagueDashPlayerStats(
+                season='2024-25',
+                headers=custom_headers,
+                timeout=20 
+            )
+            
+            df = response.get_data_frames()[0]
+            top_players = df.sort_values(by='PTS', ascending=False).head(limit)
+            
+            players_array = []
+            for _, row in top_players.iterrows():
+                player = {
+                    "Name": f"{row['PLAYER_NAME']}",
+                    "FT_Made": int(row['FTM']),
+                    "FT_Attempted": int(row['FTA']),
+                    "Two_Made": int(row['FGM']) - int(row['FG3M']),
+                    "Two_Attempted": int(row['FGA']) - int(row['FG3A']),
+                    "Three_Made": int(row['FG3M']),
+                    "Three_Attempted": int(row['FG3A']),
+                    "Off_Rebounds": int(row['OREB']),
+                    "Def_Rebounds": int(row['DREB']),
+                    "Assists": int(row['AST']),
+                    "Steals": int(row['STL']),
+                    "Blocks": int(row['BLK']),
+                    "Turnovers": int(row['TOV']),
+                    "Fouls": int(row['PF']),
+                    "Matches": int(row['GP'])
+                }
+                players_array.append(player)
+                
+            return players_array
+            
+        except Exception as e:
+            print(f" Error on attempt {attempt + 1}: {e}")
+            time.sleep(3) 
+
+    print("\n NBA API is currently blocking requests.")
+    print(" Deploying Backup Roster to keep the pipeline alive...")
+    return get_nba_fallback(limit)
 
 def get_euroleague_random_25():
     print(" Selecting 25 random Euroleague stars from the database...")
@@ -163,11 +201,15 @@ def get_euroleague_random_25():
 
 def main():
     print("    BASKETBALL DATA CENTRAL (Randomizer) ")
-    print("1. NBA Only (Top 50)")
-    print("2. Euroleague Only (Random 25)")
-    print("3. Mixed (25 NBA + 25 Random Euroleague)")
     
-    choice = input("\n Select mode (1-3): ")
+    #Check if streamlit send a number
+    if len(sys.argv) > 1:
+        choice = sys.argv[1]
+    else:
+        print("1. NBA Only (Top 50)")
+        print("2. Euroleague Only (Random 25)")
+        print("3. Mixed (25 NBA + 25 Random Euroleague)")
+        choice = input("\n Select mode (1-3): ")
     
     final_players = []
     if choice == '1':
@@ -181,13 +223,13 @@ def main():
         return
 
     output = {"players": final_players}
-    filename = "nba.json"
+    
+    filename = "../tests/nba.json" 
     
     with open(filename, "w", encoding="utf-8") as f:
         json.dump(output, f, indent=4, ensure_ascii=False)
 
     print(f"\n Success! {len(final_players)} players saved to '{filename}'")
-    print(" Every run gives you a different set of Euroleague stars!")
 
 if __name__ == "__main__":
     main()

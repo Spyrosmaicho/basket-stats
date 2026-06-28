@@ -55,17 +55,6 @@ bool validate_shots(player *pl,int stat,int value)
     return !(made > attempts);
 }
 
-//Function to validate rebounds
-bool validate_rebs(player *pl,int stat,int value,int *total,int *off,int *def)
-{
-    *total = get_rebounds(pl);
-    if(stat==OFF_REBOUNDS) *off = get_off_rebounds(pl) + value;
-    else *def = get_def_rebounds(pl) + value;
-
-
-    return !(*off > *total || *def > *total);
-}
-
 //Function to check made-attempted
 bool check_pt(int made,int attempted)
 {

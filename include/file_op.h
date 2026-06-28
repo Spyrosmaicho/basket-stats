@@ -13,4 +13,11 @@ bool load_json_file(hashtable **ht,vector **vec,team **t,char *message);
 
 bool load_csv_file(hashtable **ht,vector **vec,team **t,char *message);
 
+
+bool pipe_txt(hashtable **ht,vector **vec,team **t,char *message,char *filename);
+bool pipe_csv(hashtable **ht,vector **vec,team **t,char *message,char *filename);
+bool pipe_json(hashtable **ht,vector **vec,team **t,char *message,char *filename);
+
+
+
 #endif

@@ -6,3 +6,4 @@ scikit-learn
 requests
 nba_api
 urllib3
+pexpect

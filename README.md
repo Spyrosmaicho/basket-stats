@@ -2,16 +2,33 @@
 
 ![C](https://img.shields.io/badge/Language-C-00599C?style=for-the-badge&logo=c)
 ![Make](https://img.shields.io/badge/Build-Make-4CAF50?style=for-the-badge&logo=gnu)
+![Python](https://img.shields.io/badge/Frontend-Streamlit-FF4B4B?style=for-the-badge&logo=streamlit)
+![SQLite](https://img.shields.io/badge/Database-SQLite-003B57?style=for-the-badge&logo=sqlite)
 
-A high-performance, Full-Stack analytical tool for basketball statistics. This project combines a memory-safe C backend for data processing with a relational SQLite database and a modern Python/Streamlit frontend.
+## Overview
+Basket Stats Manager is a full-stack basketball analytics platform that combines a high-performance C engine, persistent SQLite storage, an interactive Streamlit dashboard and machine learning techniques to analyze, manage and visualize player statistics from multiple data sources.
+
+## Table of Contents
+- [Overview](#overview)
+- [Full-Stack Pipeline](#the-full-stack-pipeline)
+- [Key Features](#key-features)
+- [Project Architecture](#project-architecture)
+- [System Architecture](#system-architecture)
+- [Why Daemon Mode?](#why-daemon-mode)
+- [Communication Protocol](#communication-protocol)
+- [Technologies Used](#technologies-used)
+- [Prerequisites](#prerequisites)
+- [Build](#build-the-project)
+- [Execution](#execution)
+
 
 ## The Full-Stack Pipeline
 
-* **Backend (C)**: Handles raw data input, custom JSON parsing, and complex statistical calculations.
+* **Backend (C)**: Uses custom Hashtables and Vectors for $O(1)$ performance. Operates in a persistent `--daemon` mode to avoid loading overhead.
 
-* **Persistence (SQL)**: Instead of volatile flat files, data is synced into a relational SQLite database for integrity and speed.
+* **Persistence (SQL)**: Every operation is ACID-compliant, ensuring data integrity between the C memory structures and the physical database.
 
-* **Frontend (Python)**: An interactive dashboard fetches data from SQL to provide AI-driven insights and visualizations.
+* **Frontend (Python)**: An interactive GUI that bridges the gap between raw stats and Data Science, offering real-time filtering and ML insights.
 
 ## Key Features
 
@@ -24,6 +41,8 @@ A high-performance, Full-Stack analytical tool for basketball statistics. This p
 - **Memory Safe**: Zero memory leaks (Valgrind tested), ensuring stability in high-performance environments.
 
 - **AI Scouting & Clustering**: ML-powered player similarity engine and archetype grouping using K-Means and PCA.
+
+- **Daemon-Based Communication**: The C engine runs as a background process, accepting commands via pipe (LOAD, ADD_PLAYER, STATS).
 
 ## Project Architecture
 
@@ -61,6 +80,287 @@ basket-stats/
 └── README.md               # Project documentation
 ```
 
+
+##  System Architecture
+The application is built around a persistent C daemon responsible for data management, synchronization and communication between all system components.
+
+```mermaid
+flowchart LR
+
+%% ==========================================================
+%% USER LAYER
+%% ==========================================================
+
+U([ User])
+
+U -->|Option A| ST
+U -->|Option B| TERM
+
+%% ==========================================================
+%% STREAMLIT
+%% ==========================================================
+
+subgraph PY[" Python / Streamlit Application"]
+
+ST["Interactive Dashboard"]
+
+STEP1["Step 1<br/>Fetch API Data"]
+STEP2["Step 2<br/>Load TXT / JSON / CSV"]
+STEP3["Step 3<br/>Player Operations"]
+STEP4["Step 4<br/>Clear Database"]
+
+DASH["Analytics Dashboard
+
+• KPI Cards
+• Interactive Charts
+• SQL Queries
+• Head-to-Head Comparison
+• ML Similarity Search
+• PCA + Clustering
+• Leaderboards"]
+
+ST --> STEP1
+ST --> STEP2
+ST --> STEP3
+ST --> STEP4
+
+STEP1 --> JSON["nba.json"]
+
+STEP2 --> PIPE
+STEP3 --> PIPE
+STEP4 --> SQLITE
+
+SQLITE --> DASH
+
+end
+
+%% ==========================================================
+%% TERMINAL
+%% ==========================================================
+
+subgraph CLI[" Native C Terminal"]
+
+TERM["Interactive CLI"]
+
+end
+
+TERM --> CINTERACTIVE
+
+%% ==========================================================
+%% IPC
+%% ==========================================================
+
+subgraph IPC["Communication Layer"]
+
+PIPE["Anonymous Pipes
+
+stdin / stdout"]
+
+end
+
+%% ==========================================================
+%% C ENGINE
+%% ==========================================================
+
+subgraph CORE[" C Core Engine"]
+
+CDAEMON["Daemon Mode
+
+Persistent Process"]
+
+CINTERACTIVE["Interactive Mode"]
+
+VALID["Validation Layer
+
+✔ Input validation
+
+✔ Basketball rules
+
+✔ Percentages
+
+✔ Team consistency
+
+✔ Error handling"]
+
+DS["Low-Level Data Structures
+
+• Hashtable
+
+• Dynamic Vector
+
+• Team Aggregator"]
+
+EXPORT["Export Engine
+
+TXT
+
+JSON
+
+CSV"]
+
+SQLSYNC["SQLite Synchronization"]
+
+end
+
+PIPE --> CDAEMON
+
+CDAEMON --> VALID
+
+CINTERACTIVE --> VALID
+
+VALID --> DS
+
+DS --> EXPORT
+
+DS --> SQLSYNC
+
+SQLSYNC --> SQLITE
+
+%% ==========================================================
+%% STORAGE
+%% ==========================================================
+
+subgraph STORAGE["Storage"]
+
+SQLITE[(SQLite Database)]
+
+FILES["TXT
+
+JSON
+
+CSV"]
+
+end
+
+EXPORT --> FILES
+
+JSON --> PIPE
+
+FILES --> PIPE
+
+%% ==========================================================
+%% PROTOCOL
+%% ==========================================================
+
+subgraph PROTOCOL["Daemon Protocol"]
+
+CMD["Commands
+
+LOAD
+
+ADD_PLAYER
+
+REMOVE
+
+STATS"]
+
+RESP["Responses
+
+OK
+
+ERROR"]
+
+end
+
+PIPE -.-> CMD
+RESP -.-> PIPE
+
+%% ==========================================================
+%% COLORS
+%% ==========================================================
+
+%% ---------- USER ----------
+style U fill:#374151,stroke:#111827,stroke-width:2px,color:#ffffff
+
+%% ---------- STREAMLIT ----------
+style ST fill:#2563EB,stroke:#1E40AF,stroke-width:2px,color:#ffffff
+style STEP1 fill:#3B82F6,stroke:#1E40AF,color:#ffffff
+style STEP2 fill:#3B82F6,stroke:#1E40AF,color:#ffffff
+style STEP3 fill:#3B82F6,stroke:#1E40AF,color:#ffffff
+style STEP4 fill:#3B82F6,stroke:#1E40AF,color:#ffffff
+style DASH fill:#1D4ED8,stroke:#1E3A8A,stroke-width:2px,color:#ffffff
+
+%% ---------- COMMUNICATION ----------
+style PIPE fill:#D97706,stroke:#92400E,stroke-width:2px,color:#ffffff
+
+%% ---------- C ENGINE ----------
+style CDAEMON fill:#15803D,stroke:#14532D,stroke-width:2px,color:#ffffff
+style CINTERACTIVE fill:#16A34A,stroke:#14532D,stroke-width:2px,color:#ffffff
+style VALID fill:#22C55E,stroke:#166534,color:#ffffff
+style DS fill:#166534,stroke:#14532D,color:#ffffff
+style EXPORT fill:#16A34A,stroke:#14532D,color:#ffffff
+style SQLSYNC fill:#15803D,stroke:#14532D,color:#ffffff
+
+%% ---------- STORAGE ----------
+style SQLITE fill:#B91C1C,stroke:#7F1D1D,stroke-width:2px,color:#ffffff
+style FILES fill:#DC2626,stroke:#7F1D1D,color:#ffffff
+style JSON fill:#EF4444,stroke:#991B1B,color:#ffffff
+
+%% ---------- PROTOCOL ----------
+style CMD fill:#7C3AED,stroke:#4C1D95,color:#ffffff
+style RESP fill:#8B5CF6,stroke:#4C1D95,color:#ffffff
+
+%% ---------- TERMINAL ----------
+style TERM fill:#4B5563,stroke:#111827,stroke-width:2px,color:#ffffff
+```
+
+## Why Daemon Mode?
+
+Instead of launching a new C process for every frontend request, the backend remains alive as a daemon.
+
+Benefits include:
+
+- Faster response times.
+- Reduced process creation overhead.
+- Persistent in-memory data structures.
+- Better scalability for interactive applications.
+
+## Communication Protocol
+
+The frontend communicates with the C backend through a lightweight text-based command protocol over standard input/output pipes.
+
+Supported commands:
+
+| Command | Syntax | Purpose |
+|----------|--------|---------|
+| **LOAD** | `LOAD <type> <filepath>` | Import players from TXT or JSON files. |
+| **ADD_PLAYER** | `ADD_PLAYER <name>` | Create a new player. |
+| **REMOVE_PLAYER** | `REMOVE_PLAYER <name>` | Remove an existing player. |
+| **STATS** | `STATS <name> <stat> <value>` | Update player statistics. |
+| **EXPORT** | `EXPORT <format> <filepath>` | Export the current dataset. |
+| **EXIT** | `EXIT` | Gracefully terminate the daemon. |
+
+> **Protocol format**
+
+```text
+COMMAND|ARG1|ARG2|...
+```
+
+Example:
+
+```text
+LOAD|json|tests/nba.json
+ADD_PLAYER|Stephen Curry
+STATS|Stephen Curry|PTS|35
+EXPORT|csv|analytics/players.csv
+EXIT
+```
+
+The protocol was intentionally designed to remain human-readable, extensible, and independent from the graphical frontend.
+
+## Technologies Used
+
+| Layer | Technologies |
+|--------|--------------|
+| Backend | C17 |
+| Data Structures | Custom Hashtable, Dynamic Vector |
+| Database | SQLite3 |
+| Frontend | Python, Streamlit |
+| Visualization | Plotly, Matplotlib |
+| Machine Learning | Scikit-Learn, PCA, K-Means, Cosine Similarity |
+| Build System | Make |
+| Memory Analysis | Valgrind |
+| CI/CD | GitHub Actions |
 
 ## Prerequisites
 

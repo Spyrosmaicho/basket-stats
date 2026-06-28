@@ -47,7 +47,7 @@ void new_data(hashtable **ht,vector **vec,team **t)
                 if(!remove_player(ht,vec,*t)) error_handler(*ht,*vec,*t,"Could not remove player.\n");
                 break;
                 case 3: 
-                    add_stats(*ht,*t);
+                    add_stats(*ht,*vec,*t);
                     break;
                 case 4:
                     //If the vector is empty there are no players 

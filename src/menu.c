@@ -54,14 +54,13 @@ void add_stats_menu(void)
     printf("4.2p Attempted\n");
     printf("5.3p Made\n");
     printf("6.3p Attempted\n");
-    printf("7.Total Rebounds\n");
-    printf("8.Offensive Rebounds\n");
-    printf("9.Defensive Rebounds\n");
-    printf("10.Assists\n");
-    printf("11.Steals\n");
-    printf("12.Blocks\n");
-    printf("13.Turnovers\n");
-    printf("14.Fouls\n");
-    printf("15.Matches\n");
-    printf("16.Exit\n");
+    printf("7.Offensive Rebounds\n");
+    printf("8.Defensive Rebounds\n");
+    printf("9.Assists\n");
+    printf("10.Steals\n");
+    printf("11.Blocks\n");
+    printf("12.Turnovers\n");
+    printf("13.Fouls\n");
+    printf("14.Matches\n");
+    printf("15.Exit\n");
 }

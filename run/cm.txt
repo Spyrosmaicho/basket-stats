@@ -8,8 +8,6 @@ import sqlite3
 import os
 import subprocess
 import sys
-import time
-import pexpect
 
 # --- MACHINE LEARNING IMPORTS ---
 from sklearn.preprocessing import StandardScaler
@@ -42,64 +40,53 @@ st.markdown("Comprehensive statistical overview, player scouting, and matchup an
 st.markdown("---")
 
 # ==========================================
-# --- ABSOLUTE PATHS ---
+# --- HELPER FUNCS ---
 # ==========================================
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-RUN_DIR = os.path.abspath(os.path.join(BASE_DIR, "../run"))
-DB_PATH = os.path.abspath(os.path.join(BASE_DIR, "../database/nba_stats.db"))
-TESTS_DIR = os.path.abspath(os.path.join(BASE_DIR, "../tests"))
-
-# ==========================================
-# --- ENGINE CORE (DAEMON MODE) ---
-# ==========================================
-if 'c_engine' not in st.session_state:
-    st.session_state.c_engine = None
-
-def compile_c():
+def compile_c_engine():
     try:
-        if not os.path.exists(RUN_DIR):
-            st.error(f"Directory not found -> {RUN_DIR}")
+        base_dir = os.path.dirname(os.path.abspath(__file__))
+
+        makefile_dir = os.path.abspath(os.path.join(base_dir, "../run"))
+
+        makefile = os.path.join(makefile_dir, "Makefile")
+        if not os.path.isfile(makefile):
+            st.sidebar.error(f"Makefile not found:\n{makefile}")
             return False
 
-        res = subprocess.run(["make"], cwd=RUN_DIR, capture_output=True, text=True)
-        if res.returncode != 0:
-            st.error(" Compilation failed (Make Error)!")
-            st.code(res.stderr)
-            return False
-            
+        st.code(repr(c_sequence))
+        result = subprocess.run(
+            ["make", "clean"],
+            cwd=makefile_dir,
+            capture_output=True,
+            text=True
+        )
+        st.code(repr(c_sequence))
+        result = subprocess.run(
+            ["make"],
+            cwd=makefile_dir,
+            capture_output=True,
+            text=True
+        )
+
+        st.write("Return code:", result.returncode)
+
+        st.write("STDOUT")
+        st.code(result.stdout)
+
+        st.write("STDERR")
+        st.code(result.stderr)
+
+        #if result.returncode != 0:
+           # st.sidebar.error("Compilation failed")
+          #  st.sidebar.code(result.stdout)
+         #   st.sidebar.code(result.stderr)
+        #    return False
+
         return True
+
     except Exception as e:
-        st.error(f"Make command system error: {e}")
+        st.sidebar.error(str(e))
         return False
-
-def start_daemon():
-    if st.session_state.c_engine is None or not st.session_state.c_engine.isalive():
-        if not compile_c(): return False
-        exe_path = os.path.join(RUN_DIR, 'basket')
-        st.session_state.c_engine = pexpect.spawn(f"{exe_path} --daemon", cwd=RUN_DIR, encoding='utf-8', timeout=15)
-        st.session_state.c_engine.setecho(False)
-        st.session_state.c_engine.logfile = sys.stdout
-        st.session_state.c_engine.expect("DAEMON_READY")
-    return st.session_state.c_engine
-
-def send_command(cmd):
-    try:
-        child = start_daemon()
-        if child:
-            child.sendline(cmd)
-            index = child.expect(["OK", "ERROR: "])
-            
-            if index == 0:
-                return True, "Success"
-            elif index == 1:
-                error_msg = child.readline().strip()
-                return False, error_msg
-                
-        return False, "Daemon not running."
-    except Exception as e:
-        st.error(f"Engine Communication Error: {e}")
-        st.session_state.c_engine = None 
-        return False, "Connection crashed."
 
 # ==========================================
 # --- Sidebar: Data Pipeline Engine ---
@@ -111,113 +98,152 @@ st.sidebar.header(" Engine Control Panel")
 with st.sidebar.expander(" Step 1: Fetch Web Data", expanded=False):
     fetch_mode = st.selectbox("Select Roster Type:", ["1. NBA Only", "2. Euroleague Only", "3. Mixed Mode"])
     mode_map = {"1. NBA Only": "1", "2. Euroleague Only": "2", "3. Mixed Mode": "3"}
+
     if st.button(" Fetch Roster"):
         with st.spinner("Downloading data from API..."):
-            fetch_script = os.path.join(TESTS_DIR, "fetch_nba.py")
-            res = subprocess.run([sys.executable, fetch_script, mode_map[fetch_mode]], capture_output=True, text=True)
-            if res.returncode == 0: 
-                st.success("Data fetched!")
-            else: 
-                st.error("Error fetching data.")
-                st.code(res.stderr)
+            try:
+                res = subprocess.run([sys.executable, "../tests/fetch_nba.py", mode_map[fetch_mode]], capture_output=True, text=True)
+                if res.returncode == 0:
+                    st.success("Data fetched to nba.json!")
+                else:
+                    st.error("Error fetching data.")
+                    st.code(res.stderr)
+            except Exception as e:
+                st.error(f"Execution error: {e}")
 
-# --- STEP 2: LOAD LOCAL FILE ---
+# --- STEP 2: LOAD LOCAL FILE (OLD DATA) ---
 with st.sidebar.expander(" Step 2: Load Local File", expanded=True):
     file_type = st.radio("Select File Type:", ["TXT", "JSON", "CSV"], index=1)
     file_type_map = {"TXT": "1", "JSON": "2", "CSV": "3"}
+    
     file_name = st.text_input("Enter filename (must be in /tests/):", value="nba.json")
     
-    if st.button(" Load & Sync"):
-        with st.spinner("Processing with C Engine..."):
-            absolute_file_path = os.path.join(TESTS_DIR, file_name)
-            
-            success, msg = send_command(f"LOAD|{file_type_map[file_type]}|{absolute_file_path}")
-            if success:
-                st.success("Database synced flawlessly!")
-                st.rerun()
-            else:
-                st.error(f"Load Failed: {msg}")
-
-# --- STEP 3: MANUAL OPERATIONS ---
-with st.sidebar.expander(" Step 3: Manual Operations"):
-    action = st.selectbox("Action:", ["Add Player", "Remove Player", "Add Stats"])
-    if action in ["Add Player", "Remove Player"]:
-        target_player = st.text_input("Player Name:")
-        if st.button("Execute"):
-            if target_player:
-                with st.spinner("Executing..."):
-                    cmd = f"ADD_PLAYER|{target_player}" if action == "Add Player" else f"REMOVE|{target_player}"
+    if st.button(" Load & Sync to SQL"):
+        with st.spinner("Compiling C Engine and processing file..."):
+            try:
+                c_sequence = f"2\n{file_type_map[file_type]}\n../tests/{file_name}\n3\n"
+                
+                if compile_c_engine():
+                    res = subprocess.run(["./basket"], input=c_sequence, cwd="../run", capture_output=True, text=True)
                     
-                    success, msg = send_command(cmd)
-                    if success: 
-                        st.success(f"Player {action} completed!")
-                        time.sleep(1)
+                    if res.returncode == 0:
+                        st.success("Database synced flawlessly!")
+                        st.cache_data.clear()
                         st.rerun()
                     else:
-                        st.error(f"Failed: {msg}")
+                        st.error("Engine Error.")
+                        st.code(res.stderr)
+            except Exception as e:
+                st.error(f"Error: {e}")
+
+# --- STEP 3: MANUAL OPERATIONS (NEW DATA) ---
+with st.sidebar.expander(" Step 3: Manual Operations"):
+    action = st.selectbox("Action:", ["Add Player", "Remove Player", "Add Stats"])
+    
+    if action in ["Add Player", "Remove Player"]:
+        target_player = st.text_input("Player Name:")
+        if st.button(f"Execute {action}"):
+            if target_player:
+                with st.spinner("Compiling and executing..."):
+                    if compile_c_engine():
+                        sub_menu = "1" if action == "Add Player" else "2"
+                        c_sequence = f"1\n{sub_menu}\n{target_player}\n8\n3\n"
+                        
+                        res = subprocess.run(["./basket"], input=c_sequence, cwd="../run", capture_output=True, text=True)
+                        if res.returncode == 0:
+                            st.success(f"{action} executed.")
+                            st.cache_data.clear()
+                            st.rerun()
+                        else:
+                            st.error("Engine Error.")
+                            st.code(res.stderr)
             else:
                 st.warning("Enter a name first!")
                 
     elif action == "Add Stats":
-        stat_map = {"1p Made":"1", "1p Attempted":"2", "2p Made":"3", "2p Attempted":"4", "3p Made":"5", "3p Attempted":"6", "Offensive Rebounds":"7", "Defensive Rebounds":"8", "Assists":"9", "Steals":"10", "Blocks":"11", "Turnovers":"12", "Fouls":"13", "Matches":"14"}
-        stat_c = st.selectbox("Which stat?", list(stat_map.keys()))
+        stat_map = {
+            "1p Made": "1", "1p Attempted": "2", "2p Made": "3", "2p Attempted": "4",
+            "3p Made": "5", "3p Attempted": "6", "Total Rebounds": "7", "Offensive Rebounds": "8",
+            "Defensive Rebounds": "9", "Assists": "10", "Steals": "11", "Blocks": "12",
+            "Turnovers": "13", "Fouls": "14", "Matches": "15"
+        }
+        stat_choice = st.selectbox("Which stat?", list(stat_map.keys()))
         target_player = st.text_input("Player Name:")
-        val = st.number_input("Value:", 1)
+        stat_value = st.number_input("Amount to add:", min_value=1, value=1)
         
-        if st.button("Update"):
+        if st.button("Update Stat"):
             if target_player:
-                with st.spinner("Updating..."):
-                    success, msg = send_command(f"STATS|{target_player}|{stat_map[stat_c]}|{val}")
-                    if success: 
-                        st.success("Stats updated!")
-                        time.sleep(1)
-                        st.rerun() 
-                    else:
-                        st.error(f"Update Failed: {msg}")
+                with st.spinner("Updating SQL..."):
+                    if compile_c_engine():
+                        c_sequence = f"1\n3\n{stat_map[stat_choice]}\n{target_player}\n{stat_value}\n16\n8\n3\n"
+                        res = subprocess.run(["./basket"], input=c_sequence, cwd="../run", capture_output=True, text=True)
+                        if res.returncode == 0:
+                            st.success("Stats updated.")
+                            st.cache_data.clear()
+                            st.rerun()
+                        else:
+                            st.error("Engine Error.")
+                            st.code(res.stderr)
             else:
                 st.warning("Enter a name first!")
 
 # --- STEP 4: CLEAR DATABASE ---
 with st.sidebar.expander(" Step 4: Clear Database"):
+    st.warning("This will delete all players from the SQL Database permanently.")
     if st.button(" Delete All Data"):
-        if os.path.exists(DB_PATH):
-            try:
-                os.remove(DB_PATH)
-                if st.session_state.c_engine:
-                    try: st.session_state.c_engine.sendline("EXIT")
-                    except: pass
-                    st.session_state.c_engine.close(force=True)
-                    st.session_state.c_engine = None
-                    
-                st.success("Database cleared!")
+        db_path = '../database/nba_stats.db'
+        try:
+            if os.path.exists(db_path):
+                conn = sqlite3.connect(db_path)
+                cursor = conn.cursor()
+                cursor.execute("DELETE FROM players;")
+                conn.commit()
+                conn.close()
+                st.success("Database cleared successfully!")
+                st.cache_data.clear()
                 st.rerun()
-            except Exception as e:
-                st.error(f"Error deleting DB: {e}")
-        else:
-            st.info("Database is already empty.")
+            else:
+                st.info("Database is already empty or doesn't exist.")
+        except Exception as e:
+            st.error(f"Failed to clear DB: {e}")
 
 st.sidebar.markdown("---")
-
 # ==========================================
-# --- DASHBOARD & DATA LOADING ---
-# =========================================
+
+# --- Load Data Function (SQL Edition) ---
+@st.cache_data
 def load_data():
-    if not os.path.exists(DB_PATH): 
-        return pd.DataFrame()
+    db_path = '../database/nba_stats.db'
     
-    conn = sqlite3.connect(DB_PATH)
-    df = pd.read_sql_query("SELECT * FROM players", conn)
-    conn.close()
-    
-    if df.empty:
+    if not os.path.exists(db_path):
         return pd.DataFrame()
 
-    df.rename(columns={'FT_Pct': '1pt %', 'TwoP_Pct': '2pt %', 'ThreeP_Pct': '3pt %'}, inplace=True)
-    df['Total_Reb'] = df['Off_Reb'] + df['Def_Reb']
-    df['Defensive_Plays'] = df['Steals'] + df['Blocks']
-    df['TS_Pct'] = np.where(df['Points'] > 0, (df['Points'] / (2 * (df['Points'] * 0.88))) * 100, 0)
-    
-    return df.fillna(0)
+    try:
+        conn = sqlite3.connect(db_path)
+        df = pd.read_sql_query("SELECT * FROM players", conn)
+        conn.close()
+
+        if df.empty:
+            return pd.DataFrame()
+
+        df.rename(columns={
+            'FT_Pct': '1pt %',
+            'TwoP_Pct': '2pt %',
+            'ThreeP_Pct': '3pt %'
+        }, inplace=True)
+
+        # Helper calculations
+        df['Total_Reb'] = df['Off_Reb'] + df['Def_Reb']
+        df['Defensive_Plays'] = df['Steals'] + df['Blocks']
+        
+        # True Shooting calculation (Approximated)
+        df['TS_Pct'] = np.where(df['Points'] > 0, (df['Points'] / (2 * (df['Points'] * 0.88))) * 100, 0)
+        
+        df.fillna(0, inplace=True)
+        return df
+    except Exception as e:
+        st.error(f"Error loading from SQL: {e}")
+        return pd.DataFrame()
 
 df = load_data()
 
@@ -242,11 +268,13 @@ st.markdown("<br>", unsafe_allow_html=True)
 # --- Tabs Configuration ---
 tab1, tab2, tab3, tab4, tab5 = st.tabs(["Interactive Charts", "Advanced Queries", "Head-to-Head Cards", "AI Scouting & Clustering", "Leaderboard"])
 
+# TAB 1: VISUAL ANALYTICS
 with tab1:
     st.header("Visual Analytics")
     chart_choice = st.selectbox(
         "Select an analytical view:",
-        ["Player Profiles (Radar Chart)", "Shooting Efficiency (Bubble Chart)", "Scoring Volume vs Efficiency", "Playmaking Efficiency (Ast vs TOs)"]
+        ["Player Profiles (Radar Chart)", "Shooting Efficiency (Bubble Chart)", 
+         "Scoring Volume vs Efficiency", "Playmaking Efficiency (Ast vs TOs)"]
     )
     st.markdown("---")
     
@@ -275,17 +303,20 @@ with tab1:
         fig = px.scatter(df, x="Turnovers", y="Assists", hover_name="Name", title="Playmaking Efficiency")
         st.plotly_chart(fig, use_container_width=True)
 
+# TAB 2: QUERY ENGINE
 with tab2:
     st.header("Database Query Engine")
-    min_pts = st.slider("Min Points", 0, int(df['Points'].max()), 0)
-    min_reb = st.slider("Min Rebounds", 0, int(df['Total_Reb'].max()), 0)
-    min_ast = st.slider("Min Assists", 0, int(df['Assists'].max()), 0)
+    st.sidebar.markdown("### Query Filters")
+    min_pts = st.sidebar.slider("Min Points", 0, int(df['Points'].max()), 0)
+    min_reb = st.sidebar.slider("Min Rebounds", 0, int(df['Total_Reb'].max()), 0)
+    min_ast = st.sidebar.slider("Min Assists", 0, int(df['Assists'].max()), 0)
     
     filtered_df = df[(df['Points'] >= min_pts) & (df['Total_Reb'] >= min_reb) & (df['Assists'] >= min_ast)]
     st.markdown(f"**Results: Found {len(filtered_df)} players matching criteria**")
     display_cols = ['Name', 'Points', 'Total_Reb', 'Assists', 'Steals', 'Blocks', 'Turnovers', 'Fouls', '2pt %', '3pt %']
     st.dataframe(filtered_df[display_cols], use_container_width=True, hide_index=True)
 
+# TAB 3: HEAD-TO-HEAD
 with tab3:
     st.header("Player Matchup")
     player_list = df['Name'].tolist()
@@ -312,6 +343,7 @@ with tab3:
         for label, col in stats_to_comp:
             compare_stat(label, p1[col], p2[col], is_percent=("%" in label))
 
+# TAB 4: AI SCOUTING
 with tab4:
     ml_features = ['Points', 'Total_Reb', 'Assists', 'Steals', 'Blocks', 'Turnovers', '2pt %', '3pt %']
     X = df[ml_features]
@@ -340,6 +372,7 @@ with tab4:
     fig_ml = px.scatter(df_pca, x='PCA_X', y='PCA_Y', color='Cluster', hover_name='Name', title="Player Archetypes mapped by AI")
     st.plotly_chart(fig_ml, use_container_width=True)
 
+# TAB 5: LEADERBOARD
 with tab5:
     st.header("Team Leaderboards")
     l_col1, l_col2, l_col3 = st.columns(3)

@@ -1,8 +1,11 @@
 #include <stdlib.h>
 #include <string.h>
+#include <stdbool.h>
 #include <math.h>
 #include "stat_type.h"
 #include "player.h"
+
+extern bool flag;
 
 struct player{
     char *name; 
@@ -164,15 +167,28 @@ int get_three_made(player *person){return person->three_point_made;}
 int get_three_attempted(player *person){return person->three_point_attempted;}
 int get_ft_made(player *person){return person->ft_made;}
 int get_ft_attempted(player *person){return person->ft_attempted;}
-double get_2p_percentage(player *person){return person->two_point_made*100.0 / person->two_point_attempted;}
-double get_3p_percentage(player *person){return person->three_point_made*100.0 / person->three_point_attempted;}
-double get_1p_percentage(player *person){return person->ft_made *100.0 / person->ft_attempted;}
+double get_2p_percentage(player *person){
+    if( person->two_point_attempted)
+        return person->two_point_made*100.0 / person->two_point_attempted;
+    else return 0.0;
+}
+double get_3p_percentage(player *person){
+    if(person->three_point_attempted)
+        return person->three_point_made*100.0 / person->three_point_attempted;
+    else return 0.0;
+}
+double get_1p_percentage(player *person){
+    if(person->ft_attempted)
+        return person->ft_made *100.0 / person->ft_attempted;
+    else return 0.0;
+
+}
 
     /*FUNCTIONS FOR ADD*/
 void add_points(player *new,int points){new->points +=points;}
 void add_rebs(player *new,int rebs){new->rebs +=rebs;}
-void add_off_rebs(player *new,int off_rebs){new->off_rebs += off_rebs;}
-void add_def_rebs(player *new,int def_rebs){new->def_rebs +=def_rebs;}
+void add_off_rebs(player *new,int off_rebs){new->off_rebs += off_rebs; if(flag) new->rebs += off_rebs;}
+void add_def_rebs(player *new,int def_rebs){new->def_rebs +=def_rebs;if(flag) new->rebs += def_rebs;}
 void add_ass(player *new,int ass){new->ass +=ass;}
 void add_steals(player *new,int steals){new->steals +=steals;}
 void add_blocks(player *new,int blocks){new->blocks +=blocks;}

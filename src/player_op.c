@@ -19,6 +19,19 @@ const char *fields[] = {
 };
 
 
+//Function to read a player using cmd line args
+void add_player(hashtable **ht,vector **vec,char *name){
+    player *pl = create_player(name);
+    //Insert the player into the hashtable
+    player *same = NULL;
+    if((same = insert_hash(*ht,name,pl))) 
+    {
+        vector_find_item(*vec,same,pl);
+        delete_player(same);
+    }
+    else insert(*vec,pl); //insert the player into the vector
+}
+
 //Function to read a new player and add him to the list of the team
 bool read_player(hashtable **ht,vector **vec)
 {
@@ -39,6 +52,8 @@ bool read_player(hashtable **ht,vector **vec)
     else insert(*vec,pl); //insert the player into the vector
     system("clear");
     free(name);
+
+    save_to_sql(*vec);
     return true;
 }
 
@@ -57,6 +72,37 @@ void remove_player_stats(team *t,player *pl)
     /*3PT*/rem_team_mthree(t,get_three_made(pl));rem_team_athree(t,get_three_attempted(pl));
 }
 
+
+//Function to delete a player from SQL database
+void delete_from_sql(const char *name) {
+    sqlite3 *db;
+    sqlite3_open("../database/nba_stats.db", &db);
+    char *sql = sqlite3_mprintf("DELETE FROM players WHERE Name = '%q';", name);
+    sqlite3_exec(db, sql, 0, 0, 0);
+    sqlite3_free(sql);
+    sqlite3_close(db);
+}
+
+bool remove_player_pipe(hashtable **ht,vector **vec,team *t,char *name){
+    player *to_freed = delete_hash(*ht,name);
+    if(!to_freed)
+    {
+        error_message("ERROR: Player not found.\n");
+        free(name);
+        return false;
+    }
+    
+    /*remove a player from the vector*/
+    vector_remove_by_item(*vec,name,check_player);
+    
+    //Remove the stats of the player from the team stats
+    remove_player_stats(t,to_freed);
+
+    delete_player(to_freed); //delete the player only once
+    delete_from_sql(name);
+    return true;
+}
+
 //Function to remove a player from the list of the team
 bool remove_player(hashtable **ht,vector **vec,team *t)
 {
@@ -64,7 +110,6 @@ bool remove_player(hashtable **ht,vector **vec,team *t)
     printf("Type the name of the player you want to remove: ");
     char *name = get_line();
     if(!name) return false;
-
     player *to_freed = delete_hash(*ht,name);
     if(!to_freed)
     {
@@ -80,7 +125,9 @@ bool remove_player(hashtable **ht,vector **vec,team *t)
     remove_player_stats(t,to_freed);
 
     delete_player(to_freed); //delete the player only once
+    delete_from_sql(name);
     free(name);
+    save_to_sql(*vec);
     return true;
 }
 
@@ -130,11 +177,12 @@ void print_player_csv(player *pl,FILE *f){
         );
 }
 
+
 //Function to add stats to a SQL database
 void save_to_sql(vector *vec) {
     sqlite3 *db;
     char *err_msg = 0;
-    
+
     // Create or open the database
     int rc = sqlite3_open("../database/nba_stats.db", &db);
     if (rc != SQLITE_OK) {
@@ -143,13 +191,14 @@ void save_to_sql(vector *vec) {
     }
 
     // Create the players table if it doesn't exist
-    const char *sql_create = "CREATE TABLE IF NOT EXISTS players ("
-                             "Name TEXT PRIMARY KEY, "
-                             "Points INTEGER, Assists INTEGER, "
-                             "Off_Reb INTEGER, Def_Reb INTEGER, "
-                             "Steals INTEGER, Blocks INTEGER, "
-                             "Turnovers INTEGER, Fouls INTEGER, "
-                             "FT_Pct REAL, TwoP_Pct REAL, ThreeP_Pct REAL);";
+    const char *sql_create =
+        "CREATE TABLE IF NOT EXISTS players ("
+        "Name TEXT PRIMARY KEY, "
+        "Points INTEGER, Assists INTEGER, "
+        "Off_Reb INTEGER, Def_Reb INTEGER, "
+        "Steals INTEGER, Blocks INTEGER, "
+        "Turnovers INTEGER, Fouls INTEGER, "
+        "FT_Pct REAL, TwoP_Pct REAL, ThreeP_Pct REAL);";
 
     rc = sqlite3_exec(db, sql_create, 0, 0, &err_msg);
     if (rc != SQLITE_OK) {
@@ -159,30 +208,45 @@ void save_to_sql(vector *vec) {
         return;
     }
 
-    //Clear the table before inserting new data
-    sqlite3_exec(db, "DELETE FROM players;", 0, 0, 0);
-
-    //Begin transaction for better performance
+    // Begin transaction for better performance
     sqlite3_exec(db, "BEGIN TRANSACTION;", 0, 0, 0);
 
     int numsSize = vec_index(vec);
-    for (int i = 0; i < numsSize; i++) {
-        player *pl = vec_data(vec, i);
-        char query[1024]; 
-        
-       char *safe_name = sqlite3_mprintf("%q", get_name(pl));
 
-        sprintf(query, "INSERT OR REPLACE INTO players VALUES ('%s', %d, %d, %d, %d, %d, %d, %d, %d, %.2lf, %.2lf, %.2lf);",
-        safe_name, get_points(pl), get_assists(pl), get_off_rebounds(pl), get_def_rebounds(pl),
-        get_steals(pl), get_blocks(pl), get_tos(pl), get_fouls(pl),
-        get_1p_percentage(pl), get_2p_percentage(pl), get_3p_percentage(pl));
+    for (int i = 0; i < numsSize; i++) {
+
+        player *pl = vec_data(vec, i);
+        char query[1024];
+
+        char *safe_name = sqlite3_mprintf("%q", get_name(pl));
+
+        sprintf(query,
+            "INSERT OR REPLACE INTO players VALUES ('%s', %d, %d, %d, %d, %d, %d, %d, %d, %.2lf, %.2lf, %.2lf);",
+            safe_name,
+            get_points(pl),
+            get_assists(pl),
+            get_off_rebounds(pl),
+            get_def_rebounds(pl),
+            get_steals(pl),
+            get_blocks(pl),
+            get_tos(pl),
+            get_fouls(pl),
+            get_1p_percentage(pl),
+            get_2p_percentage(pl),
+            get_3p_percentage(pl));
 
         sqlite3_free(safe_name);
 
         rc = sqlite3_exec(db, query, 0, 0, &err_msg);
+
         if (rc != SQLITE_OK) {
+            printf("\n================ FAILED QUERY ================\n");
+            printf("%s\n", query);
             fprintf(stderr, "SQL Error (Insert): %s\n", err_msg);
+            printf("=============================================\n");
+            sleep(5);
             sqlite3_free(err_msg);
+            err_msg = NULL;
         }
     }
 
