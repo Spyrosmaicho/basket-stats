@@ -1,359 +1,85 @@
 import streamlit as st
-import pandas as pd
-import numpy as np
-import plotly.express as px
-import plotly.graph_objects as go
-import warnings
-import sqlite3
-import os
-import subprocess
-import sys
-import time
-import pexpect
 
-# --- MACHINE LEARNING IMPORTS ---
-from sklearn.preprocessing import StandardScaler
-from sklearn.decomposition import PCA
-from sklearn.cluster import KMeans
-from sklearn.metrics.pairwise import cosine_similarity
+st.set_page_config(
+    page_title="Pro Hoops Analytics",
+    page_icon="",
+    layout="wide",
+    initial_sidebar_state="expanded",
+)
 
-warnings.filterwarnings('ignore')
+# ── Imports ────────────────────────────────────────────────────────────────
+from styles              import load_css
+from engine.database     import load_data
+from sidebar.sidebar     import show_sidebar
+from dashboard.hero      import show_hero
+from dashboard.metrics   import show_metrics
+from dashboard.leaderboard import show_leaderboard
+from charts.charts       import show_charts
+from queries.queries import show_queries
+from matchup.matchup     import show_matchup
+from ml.similarity       import show_similarity
+from ml.clustering       import show_clustering
 
-# --- Page Configuration & Custom CSS ---
-st.set_page_config(page_title="Pro Hoops Analytics", layout="wide")
+# ── Global CSS ─────────────────────────────────────────────────────────────
+load_css()
 
-st.markdown("""
-    <style>
-    #MainMenu {visibility: hidden;}
-    footer {visibility: hidden;}
-    .block-container {padding-top: 2rem;}
-    div[data-testid="stMetricValue"] {
-        font-size: 2rem !important;
-        color: #1f77b4;
-    }
-    </style>
-    """, unsafe_allow_html=True)
-
-# Top Banner
-st.image("https://images.unsplash.com/photo-1546519638-68e109498ffc?ixlib=rb-4.0.3&auto=format&fit=crop&w=2000&q=80", use_container_width=True)
-
-st.title("Team Analytics Dashboard")
-st.markdown("Comprehensive statistical overview, player scouting, and matchup analysis powered by SQLite.")
-st.markdown("---")
-
-# ==========================================
-# --- ABSOLUTE PATHS ---
-# ==========================================
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-RUN_DIR = os.path.abspath(os.path.join(BASE_DIR, "../run"))
-DB_PATH = os.path.abspath(os.path.join(BASE_DIR, "../database/nba_stats.db"))
-TESTS_DIR = os.path.abspath(os.path.join(BASE_DIR, "../tests"))
-
-# ==========================================
-# --- ENGINE CORE (DAEMON MODE) ---
-# ==========================================
-if 'c_engine' not in st.session_state:
-    st.session_state.c_engine = None
-
-def compile_c():
-    try:
-        if not os.path.exists(RUN_DIR):
-            st.error(f"Directory not found -> {RUN_DIR}")
-            return False
-
-        res = subprocess.run(["make"], cwd=RUN_DIR, capture_output=True, text=True)
-        if res.returncode != 0:
-            st.error(" Compilation failed (Make Error)!")
-            st.code(res.stderr)
-            return False
-            
-        return True
-    except Exception as e:
-        st.error(f"Make command system error: {e}")
-        return False
-
-def start_daemon():
-    if st.session_state.c_engine is None or not st.session_state.c_engine.isalive():
-        if not compile_c(): return False
-        exe_path = os.path.join(RUN_DIR, 'basket')
-        st.session_state.c_engine = pexpect.spawn(f"{exe_path} --daemon", cwd=RUN_DIR, encoding='utf-8', timeout=15)
-        st.session_state.c_engine.setecho(False)
-        st.session_state.c_engine.logfile = sys.stdout
-        st.session_state.c_engine.expect("DAEMON_READY")
-    return st.session_state.c_engine
-
-def send_command(cmd):
-    try:
-        child = start_daemon()
-        if child:
-            child.sendline(cmd)
-            index = child.expect(["OK", "ERROR: "])
-            
-            if index == 0:
-                return True, "Success"
-            elif index == 1:
-                error_msg = child.readline().strip()
-                return False, error_msg
-                
-        return False, "Daemon not running."
-    except Exception as e:
-        st.error(f"Engine Communication Error: {e}")
-        st.session_state.c_engine = None 
-        return False, "Connection crashed."
-
-# ==========================================
-# --- Sidebar: Data Pipeline Engine ---
-# ==========================================
-st.sidebar.image("https://images.unsplash.com/photo-1519861531473-9200262188bf?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80", use_container_width=True)
-st.sidebar.header(" Engine Control Panel")
-
-# --- STEP 1: WEB API FETCH ---
-with st.sidebar.expander(" Step 1: Fetch Web Data", expanded=False):
-    fetch_mode = st.selectbox("Select Roster Type:", ["1. NBA Only", "2. Euroleague Only", "3. Mixed Mode"])
-    mode_map = {"1. NBA Only": "1", "2. Euroleague Only": "2", "3. Mixed Mode": "3"}
-    if st.button(" Fetch Roster"):
-        with st.spinner("Downloading data from API..."):
-            fetch_script = os.path.join(TESTS_DIR, "fetch_nba.py")
-            res = subprocess.run([sys.executable, fetch_script, mode_map[fetch_mode]], capture_output=True, text=True)
-            if res.returncode == 0: 
-                st.success("Data fetched!")
-            else: 
-                st.error("Error fetching data.")
-                st.code(res.stderr)
-
-# --- STEP 2: LOAD LOCAL FILE ---
-with st.sidebar.expander(" Step 2: Load Local File", expanded=True):
-    file_type = st.radio("Select File Type:", ["TXT", "JSON", "CSV"], index=1)
-    file_type_map = {"TXT": "1", "JSON": "2", "CSV": "3"}
-    file_name = st.text_input("Enter filename (must be in /tests/):", value="nba.json")
-    
-    if st.button(" Load & Sync"):
-        with st.spinner("Processing with C Engine..."):
-            absolute_file_path = os.path.join(TESTS_DIR, file_name)
-            
-            success, msg = send_command(f"LOAD|{file_type_map[file_type]}|{absolute_file_path}")
-            if success:
-                st.success("Database synced flawlessly!")
-                st.rerun()
-            else:
-                st.error(f"Load Failed: {msg}")
-
-# --- STEP 3: MANUAL OPERATIONS ---
-with st.sidebar.expander(" Step 3: Manual Operations"):
-    action = st.selectbox("Action:", ["Add Player", "Remove Player", "Add Stats"])
-    if action in ["Add Player", "Remove Player"]:
-        target_player = st.text_input("Player Name:")
-        if st.button("Execute"):
-            if target_player:
-                with st.spinner("Executing..."):
-                    cmd = f"ADD_PLAYER|{target_player}" if action == "Add Player" else f"REMOVE|{target_player}"
-                    
-                    success, msg = send_command(cmd)
-                    if success: 
-                        st.success(f"Player {action} completed!")
-                        time.sleep(1)
-                        st.rerun()
-                    else:
-                        st.error(f"Failed: {msg}")
-            else:
-                st.warning("Enter a name first!")
-                
-    elif action == "Add Stats":
-        stat_map = {"1p Made":"1", "1p Attempted":"2", "2p Made":"3", "2p Attempted":"4", "3p Made":"5", "3p Attempted":"6", "Offensive Rebounds":"7", "Defensive Rebounds":"8", "Assists":"9", "Steals":"10", "Blocks":"11", "Turnovers":"12", "Fouls":"13", "Matches":"14"}
-        stat_c = st.selectbox("Which stat?", list(stat_map.keys()))
-        target_player = st.text_input("Player Name:")
-        val = st.number_input("Value:", 1)
-        
-        if st.button("Update"):
-            if target_player:
-                with st.spinner("Updating..."):
-                    success, msg = send_command(f"STATS|{target_player}|{stat_map[stat_c]}|{val}")
-                    if success: 
-                        st.success("Stats updated!")
-                        time.sleep(1)
-                        st.rerun() 
-                    else:
-                        st.error(f"Update Failed: {msg}")
-            else:
-                st.warning("Enter a name first!")
-
-# --- STEP 4: CLEAR DATABASE ---
-with st.sidebar.expander(" Step 4: Clear Database"):
-    if st.button(" Delete All Data"):
-        if os.path.exists(DB_PATH):
-            try:
-                os.remove(DB_PATH)
-                if st.session_state.c_engine:
-                    try: st.session_state.c_engine.sendline("EXIT")
-                    except: pass
-                    st.session_state.c_engine.close(force=True)
-                    st.session_state.c_engine = None
-                    
-                st.success("Database cleared!")
-                st.rerun()
-            except Exception as e:
-                st.error(f"Error deleting DB: {e}")
-        else:
-            st.info("Database is already empty.")
-
-st.sidebar.markdown("---")
-
-# ==========================================
-# --- DASHBOARD & DATA LOADING ---
-# =========================================
-def load_data():
-    if not os.path.exists(DB_PATH): 
-        return pd.DataFrame()
-    
-    conn = sqlite3.connect(DB_PATH)
-    df = pd.read_sql_query("SELECT * FROM players", conn)
-    conn.close()
-    
-    if df.empty:
-        return pd.DataFrame()
-
-    df.rename(columns={'FT_Pct': '1pt %', 'TwoP_Pct': '2pt %', 'ThreeP_Pct': '3pt %'}, inplace=True)
-    df['Total_Reb'] = df['Off_Reb'] + df['Def_Reb']
-    df['Defensive_Plays'] = df['Steals'] + df['Blocks']
-    df['TS_Pct'] = np.where(df['Points'] > 0, (df['Points'] / (2 * (df['Points'] * 0.88))) * 100, 0)
-    
-    return df.fillna(0)
-
+# ── Data ───────────────────────────────────────────────────────────────────
 df = load_data()
 
+# ── Sidebar ────────────────────────────────────────────────────────────────
+show_sidebar(df)
+
+# ── Empty-state guard ──────────────────────────────────────────────────────
 if df.empty:
-    st.info(" The database is currently empty. Use the Engine Control Panel to load some data!")
+    show_hero()
+    st.markdown("<br>", unsafe_allow_html=True)
+    st.markdown(
+        """
+<div style="text-align:center;padding:4rem 2rem;">
+  <div style="font-size:4rem;margin-bottom:1rem;"></div>
+  <div style="font-family:Poppins,sans-serif;font-size:1.6rem;font-weight:700;
+    color:#F1F5F9;margin-bottom:0.6rem;">No Players Loaded</div>
+  <div style="color:#64748B;font-size:0.95rem;">
+    Use the Engine Control Panel in the sidebar to import data.
+  </div>
+</div>
+""",
+        unsafe_allow_html=True,
+    )
     st.stop()
 
-# --- KPI CARDS (Highlights) ---
-st.subheader("Season Highlights")
-col_kpi1, col_kpi2, col_kpi3 = st.columns(3)
+# ── Hero ───────────────────────────────────────────────────────────────────
+show_hero()
 
-top_scorer = df.loc[df['Points'].idxmax()]
-top_playmaker = df.loc[df['Assists'].idxmax()]
-top_defender = df.loc[df['Defensive_Plays'].idxmax()]
+# ── KPI Metrics ────────────────────────────────────────────────────────────
+show_metrics(df)
 
-col_kpi1.metric(label="Top Scorer", value=f"{top_scorer['Name']}", delta=f"{int(top_scorer['Points'])} Pts")
-col_kpi2.metric(label="Best Playmaker", value=f"{top_playmaker['Name']}", delta=f"{int(top_playmaker['Assists'])} Ast")
-col_kpi3.metric(label="Defensive Anchor", value=f"{top_defender['Name']}", delta=f"{int(top_defender['Defensive_Plays'])} Stl+Blk")
-
-st.markdown("<br>", unsafe_allow_html=True)
-
-# --- Tabs Configuration ---
-tab1, tab2, tab3, tab4, tab5 = st.tabs(["Interactive Charts", "Advanced Queries", "Head-to-Head Cards", "AI Scouting & Clustering", "Leaderboard"])
+# ── Tabs ───────────────────────────────────────────────────────────────────
+tab1, tab2, tab3, tab4, tab5 = st.tabs([
+    "  Analytics",
+    "  Queries",
+    "  Matchup",
+    "  AI Scouting",
+    "  Leaderboard",
+])
 
 with tab1:
-    st.header("Visual Analytics")
-    chart_choice = st.selectbox(
-        "Select an analytical view:",
-        ["Player Profiles (Radar Chart)", "Shooting Efficiency (Bubble Chart)", "Scoring Volume vs Efficiency", "Playmaking Efficiency (Ast vs TOs)"]
-    )
-    st.markdown("---")
-    
-    if chart_choice == "Player Profiles (Radar Chart)":
-        top2 = df.sort_values(by='Points', ascending=False).head(2)
-        categories = ['Points', 'Total_Reb', 'Assists', 'Steals', 'Blocks']
-        fig = go.Figure()
-        for index, row in top2.iterrows():
-            fig.add_trace(go.Scatterpolar(r=[row['Points'], row['Total_Reb'], row['Assists'], row['Steals'], row['Blocks']], theta=categories, fill='toself', name=row['Name']))
-        fig.update_layout(polar=dict(radialaxis=dict(visible=True)), showlegend=True, title="Top 2 Scorers Comparison")
-        st.plotly_chart(fig, use_container_width=True)
-        
-    elif chart_choice == "Shooting Efficiency (Bubble Chart)":
-        fig = px.scatter(df[df['Points'] > 0], x="2pt %", y="3pt %", size="Points", color="Points", hover_name="Name", title="Shooting Efficiency (2PT% vs 3PT%)", size_max=40, color_continuous_scale=px.colors.sequential.Inferno)
-        st.plotly_chart(fig, use_container_width=True)
-
-    elif chart_choice == "Scoring Volume vs Efficiency":
-        top_5_pts = df.sort_values(by='Points', ascending=False).head(5)
-        fig = go.Figure()
-        fig.add_trace(go.Bar(x=top_5_pts['Name'], y=top_5_pts['Points'], name='Points', marker_color='#17becf'))
-        fig.add_trace(go.Scatter(x=top_5_pts['Name'], y=top_5_pts['2pt %'], name='2PT %', mode='markers+lines', yaxis='y2', marker=dict(color='#ff7f0e')))
-        fig.update_layout(title="Volume vs Efficiency", yaxis=dict(title="Points"), yaxis2=dict(title="Percentage %", overlaying='y', side='right'))
-        st.plotly_chart(fig, use_container_width=True)
-
-    elif chart_choice == "Playmaking Efficiency (Ast vs TOs)":
-        fig = px.scatter(df, x="Turnovers", y="Assists", hover_name="Name", title="Playmaking Efficiency")
-        st.plotly_chart(fig, use_container_width=True)
+    show_charts(df)
 
 with tab2:
-    st.header("Database Query Engine")
-    min_pts = st.slider("Min Points", 0, int(df['Points'].max()), 0)
-    min_reb = st.slider("Min Rebounds", 0, int(df['Total_Reb'].max()), 0)
-    min_ast = st.slider("Min Assists", 0, int(df['Assists'].max()), 0)
-    
-    filtered_df = df[(df['Points'] >= min_pts) & (df['Total_Reb'] >= min_reb) & (df['Assists'] >= min_ast)]
-    st.markdown(f"**Results: Found {len(filtered_df)} players matching criteria**")
-    display_cols = ['Name', 'Points', 'Total_Reb', 'Assists', 'Steals', 'Blocks', 'Turnovers', 'Fouls', '2pt %', '3pt %']
-    st.dataframe(filtered_df[display_cols], use_container_width=True, hide_index=True)
+    show_queries(df)
 
 with tab3:
-    st.header("Player Matchup")
-    player_list = df['Name'].tolist()
-    sel_col1, sel_col2 = st.columns(2)
-    p1_name = sel_col1.selectbox("Select Player 1", player_list, index=0)
-    p2_name = sel_col2.selectbox("Select Player 2", player_list, index=1 if len(player_list) > 1 else 0)
-    
-    if p1_name and p2_name:
-        p1, p2 = df[df['Name'] == p1_name].iloc[0], df[df['Name'] == p2_name].iloc[0]
-        st.markdown("<br>", unsafe_allow_html=True)
-        
-        def compare_stat(stat_name, val1, val2, is_percent=False):
-            v1_str = f"{val1:.1f}%" if is_percent else str(int(val1))
-            v2_str = f"{val2:.1f}%" if is_percent else str(int(val2))
-            c1_color = "#2ca02c" if val1 > val2 else "#d62728"
-            c2_color = "#2ca02c" if val2 > val1 else "#d62728"
-            
-            col_a, col_b, col_c = st.columns([2, 1, 2])
-            col_a.markdown(f"<h4 style='text-align: right; color: {c1_color};'>{v1_str}</h4>", unsafe_allow_html=True)
-            col_b.markdown(f"<p style='text-align: center; font-weight: bold;'>{stat_name}</p>", unsafe_allow_html=True)
-            col_c.markdown(f"<h4 style='text-align: left; color: {c2_color};'>{v2_str}</h4>", unsafe_allow_html=True)
-
-        stats_to_comp = [("Points", "Points"), ("Rebounds", "Total_Reb"), ("Assists", "Assists"), ("Steals", "Steals"), ("Blocks", "Blocks"), ("2PT %", "2pt %")]
-        for label, col in stats_to_comp:
-            compare_stat(label, p1[col], p2[col], is_percent=("%" in label))
+    show_matchup(df)
 
 with tab4:
-    ml_features = ['Points', 'Total_Reb', 'Assists', 'Steals', 'Blocks', 'Turnovers', '2pt %', '3pt %']
-    X = df[ml_features]
-    scaler = StandardScaler()
-    X_scaled = scaler.fit_transform(X)
-    
-    target_player = st.selectbox("Select Target Player for Twin Search:", df['Name'].tolist())
-    if target_player:
-        sim_matrix = cosine_similarity(X_scaled)
-        p_idx = df.index[df['Name'] == target_player].tolist()[0]
-        df_sim = df.copy()
-        df_sim['Similarity_Score'] = sim_matrix[p_idx] * 100
-        top_sim = df_sim[df_sim['Name'] != target_player].sort_values('Similarity_Score', ascending=False).head(3)
-        cols = st.columns(3)
-        for i, (idx, row) in enumerate(top_sim.iterrows()):
-            cols[i].metric(label=f"Match #{i+1}", value=row['Name'], delta=f"{row['Similarity_Score']:.1f}% Match")
-    
+    st.markdown(
+        '<div class="section-header"><span class="section-dot"></span> AI Scouting & Clustering</div>',
+        unsafe_allow_html=True,
+    )
+    show_similarity(df)
     st.markdown("---")
-    pca = PCA(n_components=2)
-    pca_comp = pca.fit_transform(X_scaled)
-    kmeans = KMeans(n_clusters=min(3, len(df)), random_state=42)
-    clusters = kmeans.fit_predict(X_scaled)
-    df_pca = df.copy()
-    df_pca['PCA_X'], df_pca['PCA_Y'], df_pca['Cluster'] = pca_comp[:, 0], pca_comp[:, 1], [f"Group {c+1}" for c in clusters]
-    
-    fig_ml = px.scatter(df_pca, x='PCA_X', y='PCA_Y', color='Cluster', hover_name='Name', title="Player Archetypes mapped by AI")
-    st.plotly_chart(fig_ml, use_container_width=True)
+    show_clustering(df)
 
 with tab5:
-    st.header("Team Leaderboards")
-    l_col1, l_col2, l_col3 = st.columns(3)
-    
-    with l_col1:
-        st.subheader("Top Scorers")
-        st.table(df.sort_values('Points', ascending=False).head(5)[['Name', 'Points']])
-        
-    with l_col2:
-        st.subheader("Top Playmakers")
-        st.table(df.sort_values('Assists', ascending=False).head(5)[['Name', 'Assists']])
-        
-    with l_col3:
-        st.subheader("Defensive Leaders")
-        top_def = df.sort_values('Defensive_Plays', ascending=False).head(5)[['Name', 'Defensive_Plays']]
-        top_def.columns = ['Name', 'Stl + Blk']
-        st.table(top_def)
+    show_leaderboard(df)

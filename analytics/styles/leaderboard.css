@@ -1,0 +1,12 @@
+.lb-card { display: flex; align-items: center; gap: 14px; background: #1E293B; border: 1px solid #334155; border-radius: 14px; padding: 14px 18px; margin-bottom: 10px; transition: all 0.25s ease; }
+.lb-card:hover { background: #243247; border-color: #3B82F6; transform: translateX(4px); }
+.lb-rank { font-family: 'Poppins',sans-serif; font-size: 1.1rem; font-weight: 800; width: 28px; text-align: center; flex-shrink: 0; }
+.lb-rank.gold   { color: #F59E0B; }
+.lb-rank.silver { color: #94A3B8; }
+.lb-rank.bronze { color: #B45309; }
+.lb-rank.other  { color: #475569; }
+.lb-avatar { width: 44px; height: 44px; border-radius: 50%; object-fit: cover; border: 2px solid #334155; flex-shrink: 0; background: #0F172A; }
+.lb-info { flex: 1; min-width: 0; }
+.lb-name { font-weight: 600; font-size: 0.92rem; color: #F1F5F9; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.lb-team { font-size: 0.73rem; color: #64748B; margin-top: 1px; }
+.lb-stat { font-family: 'Poppins',sans-serif; font-size: 1.1rem; font-weight: 800; color: #3B82F6; flex-shrink: 0; }

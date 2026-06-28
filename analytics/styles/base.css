@@ -1,0 +1,24 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Poppins:wght@400;500;600;700;800;900&display=swap');
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body, [data-testid="stAppViewContainer"], [data-testid="stMain"] {
+    background-color: #0F172A !important;
+    color: #F8FAFC !important;
+    font-family: 'Inter', sans-serif !important;
+}
+
+#MainMenu, footer, header { visibility: hidden; }
+
+.block-container {
+    padding-top: 0 !important;
+    padding-bottom: 3rem !important;
+    max-width: 1400px !important;
+}
+
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: #0F172A; }
+::-webkit-scrollbar-thumb { background: #334155; border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: #3B82F6; }
+
+hr { border: none; border-top: 1px solid #1E293B !important; margin: 1.5rem 0 !important; }

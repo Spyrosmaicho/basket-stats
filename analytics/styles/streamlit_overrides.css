@@ -1,0 +1,12 @@
+div[data-testid="stMetric"] { background: #1E293B !important; border: 1px solid #334155 !important; border-radius: 14px !important; padding: 16px !important; }
+[data-testid="stSelectbox"] > div, [data-testid="stTextInput"] > div > div { background: #1E293B !important; border: 1px solid #334155 !important; border-radius: 10px !important; color: #F1F5F9 !important; }
+[data-testid="stButton"] > button { background: linear-gradient(135deg,#2563EB,#3B82F6) !important; color: white !important; border: none !important; border-radius: 10px !important; font-weight: 600 !important; transition: all 0.2s ease !important; }
+[data-testid="stButton"] > button:hover { transform: translateY(-2px) !important; box-shadow: 0 6px 20px rgba(59,130,246,0.4) !important; }
+[data-testid="stSlider"] { accent-color: #3B82F6; }
+[data-testid="stDataFrame"] { background: #1E293B !important; border-radius: 12px !important; border: 1px solid #334155 !important; }
+[data-testid="stExpander"] { background: #1E293B !important; border: 1px solid #334155 !important; border-radius: 12px !important; }
+[data-testid="stExpander"] summary { color: #CBD5E1 !important; font-weight: 600 !important; }
+[data-testid="stAlert"] { background: #1E293B !important; border: 1px solid #334155 !important; border-radius: 12px !important; color: #F1F5F9 !important; }
+[data-testid="stTabs"] [data-baseweb="tab-list"] { background: #1E293B !important; border-radius: 14px !important; padding: 6px !important; gap: 4px !important; border: 1px solid #334155 !important; margin-bottom: 1.5rem !important; }
+[data-testid="stTabs"] [data-baseweb="tab"] { background: transparent !important; color: #64748B !important; font-weight: 600 !important; font-size: 0.85rem !important; border-radius: 10px !important; border: none !important; padding: 8px 16px !important; transition: all 0.2s ease !important; }
+[data-testid="stTabs"] [aria-selected="true"] { background: #3B82F6 !important; color: #FFFFFF !important; }
